@@ -66,7 +66,54 @@
     <!-- Sidebar Menu Component -->
     {% include "sidebar_aside.html" %}
 </div>
+<!-- Fin Container -->
+<!-- MODAL CONFIRMACIÓN -->
+<div class="modal">
+    <div class="content-modal flex flex-column">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <h2>¿Está seguro que desea eliminar el registro?</h2>
+        <span>Esta operación es irreversible</span>
+        <div class="flex">
+            <a href="#" class="btn">CANCELAR</a>
+            <a href="#" class="btn">ELIMINAR</a>
+        </div>
+    </div>
 
-<!-- Custom JS -->
-<script src="{{ url_for('static', filename='js/courses_management.js') }}"></script>
+</div>
+<!-- Ventana Modal Añadir Materia -->
+<div id="modalMateria" class="modal">
+    <div class="modal-content">
+        <!-- Cambiar -->
+        <h2>AÑADIR MATERIA</h2>
+        <form method="POST" action="{{ url_for('subjects.create_subject') }}">
+            <input type="hidden" name="course_id" id="modal-course-id">
+
+            <input type="text" name="subject_name" placeholder="NOMBRE" required style="color:#ffffff">
+            <input type="text" name="cover" placeholder="PORTADA" required style="color:#ffffff">
+
+            <div class="modal-footer">
+                <button type="submit">GUARDAR</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    // Mostrar el modal cuando se haga clic en "AÑADIR"
+    document.querySelectorAll('.add-subject-btn').forEach(btn => {
+        btn.addEventListener('click', function (event) {
+            event.preventDefault();  // Evita redireccionar
+            const courseId = this.getAttribute('data-course-id');
+            document.getElementById('modal-course-id').value = courseId;
+            document.getElementById('modalMateria').style.display = 'block';
+        });
+    });
+
+    // Cerrar modal si se hace clic fuera de él
+    window.onclick = function (event) {
+        const modal = document.getElementById('modalMateria');
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
 {% endblock %}
