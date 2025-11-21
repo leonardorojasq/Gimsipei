@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 
-{% block title %}Listado de Docentes{% endblock %}
 
 {% block title %}Listado de Docentes{% endblock %}
 {% block extra_css %}
@@ -31,53 +30,22 @@
                 {% for teacher in teachers %}
                 <li class="flex ">
                     <div class="data">
-                                <span>{{ teacher.full_name }}</span>
-                                <span>{{ teacher.document }}</span>
+                        <span>{{ teacher.full_name }}</span>
+                        <span>{{ teacher.document }}</span>
                     </div>
                     <span class="flex actions">
                         <a href="{{ url_for('users.edit_teacher', teacher_id=teacher.id) }}" class=""><i
                                 class="fas fa-edit"></i> </a>
-                        <button type="button" class="btn btn-danger btn-sm" title="Eliminar" data-bs-toggle="modal"
-                            data-bs-target="#deleteModal" data-teacher-id="{{ teacher.id }}"
-                            data-teacher-name="{{ teacher.full_name or teacher.username }}">
+                        <a href="{{ url_for('users.delete_teacher', teacher_id=teacher.id) }}"
+                            class="btn btn-danger btn-sm" title="Eliminar"
+                            onclick="return confirm('¿Está seguro que desea eliminar al docente {{ teacher.full_name or teacher.username }}?');">
                             <i class="fas fa-trash"></i>
-                        </button>
+                        </a>
                     </span>
                 </li>
                 {% endfor %}
+
             </ul>
-        </div>
-        <span class="flex add grados">
-            <a href="{{ url_for('users.create_teacher') }}" class="btn btn-primary"><i
-                    class="fas fa-plus me-2"></i>CREAR USUARIO</a>
-        </span>
-    </div>
-
-    <!-- Sidebar Menu Component -->
-    {% include "sidebar_aside.html" %}
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-body text-center p-4">
-                <div class="delete-icon mb-3">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <h5 class="modal-title mb-3" id="deleteModalLabel">¿Está seguro que desea eliminar el registro?</h5>
-                <p class="text-muted mb-4">Esta operación es irreversible</p>
-                <div class="d-flex gap-3 justify-content-center">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Cancelar
-                    </button>
-                    <form id="deleteForm" method="POST" style="display: inline;">
-                        <button type="submit" class="btn btn-danger">
-                            Eliminar
-                        </button>
-                    </form>
-                </div>
-            </div>
         </div>
         <span class="flex add grados">
             <a href="{{ url_for('users.create_teacher') }}" class="btn btn-primary"><i class="fas fa-plus me-2"></i>CREAR USUARIO</a>

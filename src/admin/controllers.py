@@ -10,14 +10,14 @@ from src.utils.decorator_role_required import role_required
 
 @jwt_required()
 @role_required([UserRole.ADMIN, UserRole.TEACHER, UserRole.STUDENT])
-def dashboard_controller(_: Request) -> Response:
+def dashboard_controller(request: Request) -> Response:
     user_id = get_jwt_identity()
     user_role = get_jwt().get("role")
 
     try:
         db = SessionLocal()
         user = (
-            db.query(User.id, User.full_name, User.role, User.document)
+            db.query(User.id, User.full_name, User.document, User.role)
             .filter(User.id == user_id)
             .first()
         )
@@ -35,7 +35,7 @@ def dashboard_controller(_: Request) -> Response:
                     "id": user.id,
                     "full_name": user.full_name,
                     "document": user.document,
-                    "role": user_role
+                    "role": user.role.value if hasattr(user.role, "value") else user.role
                 },
                 accion_logout=True,
             )
@@ -52,7 +52,7 @@ def dashboard_controller(_: Request) -> Response:
                     "id": user.id,
                     "full_name": user.full_name,
                     "document": user.document,
-                    "role": user_role
+                    "role": user.role.value if hasattr(user.role, "value") else user.role
                 },
                 grades=grades,
                 accion_logout=True,
@@ -61,7 +61,8 @@ def dashboard_controller(_: Request) -> Response:
         # User is student
         else:
             return render_template("about_us.html", accion_logout=True)
-    except Exception:
+    except Exception as e:
+        print(e)
         flash("Error al obtener el dashboard", "danger")
         return redirect(url_for("auth.login"))
 

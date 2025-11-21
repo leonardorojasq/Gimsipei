@@ -643,6 +643,7 @@ table#accordionCourses thead th { border-bottom: 2px solid var(--course-primary)
 .badge.bg-secondary {
     background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
 }
+<<<<<<< HEAD
 
 /* MODALS */
 .modal{
@@ -728,3 +729,5 @@ table#accordionCourses thead th { border-bottom: 2px solid var(--course-primary)
     justify-content: end;
     align-items: center;
 }
+=======
+>>>>>>> 2f72aa696f8cedc3f5da7a666436579b6e16181b
