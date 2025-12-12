@@ -42,8 +42,12 @@ form {
     flex-direction: column;
     width: 700px;
     height: 500px;
+<<<<<<< HEAD
     margin: 0;
     margin-top: 180px;
+=======
+    top: 36%;
+>>>>>>> b11cdacab8879050af84464ced655db683d4adc3
 }
 
 .user {
@@ -68,7 +72,7 @@ label {
 .form-group i{
     position: absolute;
     right: 2rem;
-    top: 25px;
+    top:25px;
     margin: auto;
     color: var(--light-color);
 }
@@ -76,19 +80,27 @@ label {
     width: 100%;
     height: 70px;
     border: 1px solid var(--info-color);
-    border-radius: 8px;
+    border-radius: 5px;
     background-color: var(--info-color);
     margin: 0 auto;
     padding: 10px;
+    transition: .3 all ease;
 }
 .input::placeholder{
     color: var(--light-color);
+    transition: .3 all ease;
 }
 input:hover {
     background-color: var(--light-color);
     border: 1px solid var(--info-color);
-    ;
 }
+input:-internal-autofill-selected::placeholder,
+.input:active::placeholder,
+.input:hover::placeholder{
+    color: var(--primary-color);
+}
+input:-internal-autofill-selected + i,
+input:active + i,
 input:hover + i{
     color: var(--info-color);
 }
@@ -134,6 +146,9 @@ a {
     text-decoration: none;
     color: var(--info-color);
 }
+.hidden_desktop{
+    display: none;
+}
 
 /* xxl  -Large devices (larger desktops, 1400px and up)*/
 @media (max-width: 1920px) {
@@ -141,7 +156,7 @@ a {
         background-image: url("../images/bg-index-1400.png");
     }
     form{
-        margin-top: 180px;
+        top: 36%;
     }
 }
 
@@ -158,7 +173,7 @@ a {
     form {
         width: 700px;
         height: 500px;
-        margin-top: 180px;
+        top: 36%;
     }
 
 }
@@ -176,9 +191,10 @@ a {
     form {
         width: 700px;
         height: 500px;
-        margin-top: 180px;
+       top: 36%;
     }
 }
+
 
 /* md   Medium devices (tablets, 768px and up)*/
 @media (min-width: 769px) and(max-width: 992px) {
@@ -195,7 +211,7 @@ a {
 }
 
 /* col Extra Small devices (landscape phones, < 576px)*/
-@media (max-width: 1024px) {
+@media (max-width: 1080px) {
     body {
         height: 100%;
     }
@@ -216,6 +232,7 @@ a {
     form {
         position: absolute;
         width: 90%;
+<<<<<<< HEAD
         height: auto;
         margin: 0;
         padding: 20px;
@@ -223,6 +240,10 @@ a {
         margin-top: 80%;
         height: 500px;
         margin-top: 80%;
+=======
+        height: 500px;
+        top: 50%;
+>>>>>>> b11cdacab8879050af84464ced655db683d4adc3
     }
 
     label {
@@ -254,15 +275,26 @@ a {
     }
 
     .boton {
-        width: 98%;
+        width: 75%;
         height: 35px;
         margin-left: 0;
         font-size: 1.1rem;
         margin: 0 auto;
         margin-top: 40px;
     }
-
+    .hidden_mobile,
     .form-checked {
         display: none;
+    }
+    .form-group i{
+        top: 10px;
+        color: var(--primary-color);
+    }
+    .input {
+        background-color: var(--light-color);
+    }
+    .hidden_desktop{
+        display: block;
+        margin-bottom: 2rem;
     }
 }

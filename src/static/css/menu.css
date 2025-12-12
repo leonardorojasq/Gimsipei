@@ -35,7 +35,7 @@ html {
     background-size: cover;
 }
 
-.mision-tp p,
+/* .mision-tp p,
 .vision-tp p {
     font-size: 1rem;
 }
@@ -45,6 +45,7 @@ html {
     flex-direction: column;
     width: 100%;
     padding: 0px 100px;
+<<<<<<< HEAD
     background-color: var(--primario);
     background-image: url("../images/menu-principal/bg-pencil.png");
     background-repeat: no-repeat;
@@ -52,24 +53,34 @@ html {
     position: relative;
 }
 
+=======
+    /* background-color: var(--primario); */
+/* background-image: url("../images/menu-principal/bg-pencil.png");
+    background-repeat: no-repeat;
+    background-size: cover; */
+/* position: relative; */
+/* } */
+>>>>>>> b11cdacab8879050af84464ced655db683d4adc3
 .logo {
     width: 300px;
     height: 60px;
-
-    margin-left: 50px;
-    margin-top: 50px;
     background-image: url("../images/logo.png");
     background-repeat: no-repeat;
 }
 
-.mision-tp {
+/* .mision-tp {
     width: 50%;
     height: auto;
     color: #ffffff;
     margin: 0px;
-}
+    text-align: left;
+    height: 80%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+} */
 
-.bg-vision {
+/* .bg-vision {
     width: 100%;
     background-color: transparent;
     z-index: 999999;
@@ -79,16 +90,23 @@ html {
     position: relative;
 }
 
+<<<<<<< HEAD
 .bg-vision .bg-lateral {
     background-position: top;
     top: -40%;
+=======
+.bg-vision .content-vision {
+    padding: 100px 80px 0px;
+    margin: auto;
+    width: 100%;
+>>>>>>> b11cdacab8879050af84464ced655db683d4adc3
 }
 
 .vision-tp {
     width: 50%;
     color: var(--gris-claro);
     padding: 20px;
-}
+} */
 
 .containe.bg-image-user::after {
     content: "";
@@ -106,6 +124,7 @@ html {
 .menu {
     display: flex;
     justify-content: center;
+    justify-content: center;
     align-items: center;
     flex-direction: row;
     flex-wrap: wrap;
@@ -115,13 +134,18 @@ html {
     gap: 5rem;
 }
 
+.container_boxs_menu {
+    justify-content: space-between;
+    gap: 0px;
+}
+
 .box-menu {
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    gap: 15px;
-    width: 150px;
+    gap: 10px;
+    width: 147px;
     height: 158px;
     position: relative;
     border-radius: 15px;
@@ -135,6 +159,10 @@ html {
 .box-menu svg {
     fill: #fff;
     width: 80px;
+}
+
+.box-menu p {
+    font-size: 16px;
 }
 
 /* botones menu*/
@@ -160,6 +188,10 @@ a {
     position: relative;
     margin-top: 200px;
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> b11cdacab8879050af84464ced655db683d4adc3
 .gimsipei-hover:hover {
     background-color: var(--barra-ginsipei);
 }
@@ -231,14 +263,14 @@ a {
 
 
 .bg_section_footer {
-    position: relative;
+    position: fixed;
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 10px;
     height: 100px;
-    top: 10px;
-    /* background-color: #f6f6f6; */
+    bottom: 150px;
+    background-color: #fff;
 }
 
 .barra_bg {
@@ -266,6 +298,25 @@ a {
 .bg-gray {
     background-color: #e2e2e2;
 }
+.bg-recursos{
+    background-color: var(--barra-recursos);
+}
+
+.bg-evaluaciones{
+    background-color: var(--barra-evaluaciones);
+}
+
+.bg-libros{
+    background-color: var(--barra-libros);
+}
+
+.bg-clases{
+    background-color: var(--barra-ginsipei);
+}
+.bg-calificaciones{
+    background-color: var(--barra-calificaciones);
+}
+
 
 * {
     margin: 0;
@@ -277,6 +328,7 @@ a {
 .mobile-header {
     display: flex;
     justify-content: space-between;
+    justify-items: center;
     align-items: center;
     padding: 15px 20px;
     background-color: #3bbae4;
@@ -332,13 +384,224 @@ a {
 /* Menú desplegable */
 .mobile-nav {
     position: fixed;
-    top: 0px;
+    top: 90px;
     right: -250px;
     width: 250px;
     height: calc(100vh - 60px);
     background-color: #3bbae4;
     transition: right 0.3s ease;
     padding: 20px 0;
+    filter: drop-shadow(2px 8px 6px black);
+}
+
+.mobile-header {
+    position: relative;
+}
+
+.mobile-header:has(+ .teachers_management),
+.mobile-header:has(+ .courses_management),
+.mobile-header:has(+ .libros_category),
+.mobile-header:has(+ .calificaciones_category),
+.mobile-header:has(+ .evaluaciones_category),
+.mobile-header:has(+ .clases_category),
+.mobile-header:has(+ .admin_category),
+.mobile-header:has(+ .recursos_category) {
+    background-color: white;
+}
+
+.mobile-header:has(+ .teachers_management):after,
+.mobile-header:has(+ .courses_management):after,
+.mobile-header:has(+ .libros_category):after,
+.mobile-header:has(+ .calificaciones_category):after,
+.mobile-header:has(+ .evaluaciones_category):after,
+.mobile-header:has(+ .clases_category):after,
+.mobile-header:has(+ .admin_category):after,
+.mobile-header:has(+ .recursos_category):after {
+    content: "";
+    height: 2px;
+    border-radius: 5px;
+    width: 98%;
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    margin: auto;
+    bottom: 0px;
+
+}
+
+.mobile-header:has(+ .teachers_management):after,
+.mobile-header:has(+ .courses_management):after {
+    background: var(--admin-active);
+}
+
+.mobile-header:has(+ .teachers_management) .logo,
+.mobile-header:has(+ .courses_management) .logo,
+.mobile-header:has(+ .libros_category) .logo,
+.mobile-header:has(+ .calificaciones_category) .logo,
+.mobile-header:has(+ .evaluaciones_category) .logo,
+.mobile-header:has(+ .clases_category) .logo,
+.mobile-header:has(+ .admin_category) .logo,
+.mobile-header:has(+ .recursos_category) .logo {
+    background-image: url("../images/iconos/logo-gris.png");
+    background-size: contain;
+}
+
+.mobile-header:has(+ .teachers_management) .hamburger-menu span,
+.mobile-header:has(+ .courses_management) .hamburger-menu span,
+.mobile-header:has(+ .libros_category) .hamburger-menu span,
+.mobile-header:has(+ .calificaciones_category) .hamburger-menu span,
+.mobile-header:has(+ .evaluaciones_category) .hamburger-menu span,
+.mobile-header:has(+ .clases_category) .hamburger-menu span,
+.mobile-header:has(+ .admin_category) .hamburger-menu span,
+.mobile-header:has(+ .recursos_category) .hamburger-menu span {
+    background-color: gray;
+}
+
+.mobile-header:has(+ .teachers_management) .mobile-nav,
+.mobile-header:has(+ .courses_management) .mobile-nav,
+.mobile-header:has(+ .libros_category) .mobile-nav,
+.mobile-header:has(+ .calificaciones_category) .mobile-nav,
+.mobile-header:has(+ .evaluaciones_category) .mobile-nav,
+.mobile-header:has(+ .clases_category) .mobile-nav,
+.mobile-header:has(+ .admin_category) .mobile-nav,
+.mobile-header:has(+ .recursos_category) .mobile-nav {
+    background-color: white;
+}
+
+.mobile-header:has(+ .teachers_management) .mobile-nav a,
+.mobile-header:has(+ .courses_management) .mobile-nav a,
+.mobile-header:has(+ .libros_category) .mobile-nav a,
+.mobile-header:has(+ .calificaciones_category) .mobile-nav a,
+.mobile-header:has(+ .evaluaciones_category) .mobile-nav a,
+.mobile-header:has(+ .clases_category) .mobile-nav a,
+.mobile-header:has(+ .admin_category) .mobile-nav a,
+.mobile-header:has(+ .recursos_category) .mobile-nav a {
+    color: gray;
+}
+
+.mobile-header:has(+ .teachers_management) .mobile-nav a:hover,
+.mobile-header:has(+ .courses_management) .mobile-nav a:hover,
+.mobile-header:has(+ .libros_category) .mobile-nav a:hover,
+.mobile-header:has(+ .calificaciones_category) .mobile-nav a:hover,
+.mobile-header:has(+ .evaluaciones_category) .mobile-nav a:hover,
+.mobile-header:has(+ .admin_category) .mobile-nav a:hover,
+.mobile-header:has(+ .recursos_category) .mobile-nav a:hover {
+    background-color: var(--azul-oscuro);
+    color: white;
+}
+
+.mobile-header:has(+ .clases_category) .mobile-nav a:hover {
+    background-color: var(--barra-clases);
+    color: white;
+}
+
+.mobile-header:has(+ .evaluaciones_category) .mobile-nav a:hover {
+    background-color: var(--evaluaciones-active);
+    color: white;
+}
+
+.evaluaciones_category a:has(.bi.bi-arrow-left-short) {
+    color: var(--evaluaciones);
+    border-color: var(--evaluaciones);
+}
+
+.evaluaciones_category a:has(i.bi.bi-arrow-left-short):hover {
+    background-color: var(--evaluaciones-active);
+    color: white;
+    border-color: var(--evaluaciones-active);
+    border-radius: 50px;
+}
+
+
+.mobile-header:has(+ .recursos_category) .mobile-nav a:hover {
+    background-color: var(--recursos-active);
+    color: white;
+}
+
+.recursos_category a:has(.bi.bi-arrow-left-short) {
+    color: var(--recursos);
+    border-color: var(--recursos);
+}
+
+.recursos_category a:has(i.bi.bi-arrow-left-short):hover {
+    background-color: var(--recursos-active);
+    color: white;
+    border-color: var(--recursos-active);
+    border-radius: 50px;
+}
+
+
+
+.mobile-header:has(+ .libros_category) .mobile-nav a:hover {
+    background-color: var(--libros-active);
+    color: white;
+}
+
+.libros_category a:has(.bi.bi-arrow-left-short) {
+    color: var(--libros);
+    border-color: var(--libros);
+}
+
+.libros_category a:has(i.bi.bi-arrow-left-short):hover {
+    background-color: var(--libros-active);
+    color: white;
+    border-color: var(--libros-active);
+    border-radius: 50px;
+}
+
+
+
+
+.mobile-header:has(+ .calificaciones_category) .mobile-nav a:hover {
+    background-color: var(--calificaciones-active);
+    color: white;
+}
+
+.calificaciones_category a:has(.bi.bi-arrow-left-short) {
+    color: var(--calificaciones);
+    border-color: var(--calificaciones);
+}
+
+.calificaciones_category a:has(i.bi.bi-arrow-left-short):hover {
+    background-color: var(--calificaciones-active);
+    color: white;
+    border-color: var(--calificaciones-active);
+    border-radius: 50px;
+}
+
+
+.mobile-header:has(+ .libros_category):after {
+    background: var(--libros-active);
+}
+
+.mobile-header:has(+ .calificaciones_category):after {
+    background: var(--calificaciones-active);
+}
+
+.mobile-header:has(+ .evaluaciones_category):after {
+    background: var(--evaluaciones-active);
+}
+
+.mobile-header:has(+ .clases_category):after,
+.mobile-header:has(+ .admin_category):after {
+    background: var(--barra-clases);
+}
+
+
+
+.clases_category a:has(i.bi.bi-arrow-left-short) {
+    color: var(--barra-clases) !important;
+    border-color: var(--barra-clases) !important;
+}
+
+.clases_category a:has(i.bi.bi-arrow-left-short):hover {
+    background-color: var(--barra-clases) !important;
+    color: white !important;
+    border-radius: 50px;
+}
+
+.mobile-header:has(+ .recursos_category):after {
+    background: var(--recursos-active);
 }
 
 .mobile-nav.active {
@@ -350,20 +613,66 @@ a {
 }
 
 .mobile-nav ul li {
-    padding: 15px 20px;
-    border-bottom: 1px solid #34495e;
+    width: 100%;
 }
 
 .mobile-nav ul li a {
+    display: block;
+    width: 100%;
     color: white;
     text-decoration: none;
     font-size: 16px;
+    padding: 15px 20px;
+    border-bottom: 1px solid #34495e;
 }
 
 .header-content {
     display: flex;
     align-items: center;
     gap: 15px;
+}
+
+a:has(i.bi.bi-arrow-left-short) {
+    transition: all 0.3s ease;
+    border-radius: 50px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+}
+
+i.bi.bi-arrow-left-short {
+    padding: 0px;
+    font-size: 31px;
+    border: 1px solid;
+    border-radius: 50px;
+    width: 100%;
+    display: flex;
+    height: 100%;
+    margin: auto;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Sidebar Active State */
+/* .menu_aside .aside_list li a.active {
+    position: relative;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 5px;
+} */
+
+.menu_aside .aside_list li a.active::after {
+    content: "";
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 70%;
+    background-color: #ffffff;
+    border-radius: 0 4px 4px 0;
 }
 
 @media (min-width:1600px) {
@@ -398,6 +707,7 @@ a {
         height: 50px;
         margin-left: 10px;
         margin-top: 10px;
+        width: 200px;
     }
 
     .containe {
@@ -491,23 +801,14 @@ a {
         width: 60%;
         position: absolute;
     }
-    .containe.bg-image-user::after {
-        display: none;
-    }
-    .bg-vision .content-vision{
-        padding: 40px 0px 0px;
-        background-color: var(--blanco);
-    }
-    .menu{
-        gap: 3rem;
-    }
     .bg_section_footer{
-        height: 100px;
-        top: 10px;
-        background-color: #f6f6f6;
+        position: relative;
+        bottom: -30px;
     }
-    .bg-mision h2,
-    .bg-vision h2{
-        font-size: 1rem;
+    .content-admin .container_boxs_menu{
+        gap: 1rem;
+    }
+    .container_boxs_menu >a{
+        width: 30%;
     }
 }

@@ -3,7 +3,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize all functionality
     initializePasswordToggle();
     initializeFormValidation();
-    initializeDeleteModal();
+    initializeDeleteModalListeners(); // Inicializar listeners del modal de eliminación
+    initializeDeleteModal(); // Inicializar botones de eliminar
     initializeAutoCloseAlerts();
     initializeLoadingStates();
 });
@@ -76,27 +77,13 @@ function validateField(field) {
     }
 }
 
-// Delete Modal Functionality
+
+// Delete Teacher Modal
 function initializeDeleteModal() {
-    const deleteModal = document.getElementById('deleteModal');
-    const deleteForm = document.getElementById('deleteForm');
-    
-    if (deleteModal && deleteForm) {
-        deleteModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const teacherId = button.getAttribute('data-teacher-id');
-            const teacherName = button.getAttribute('data-teacher-name');
-            
-            // Update modal content
-            const modalTitle = deleteModal.querySelector('#deleteModalLabel');
-            if (modalTitle) {
-                modalTitle.textContent = `¿Está seguro que desea eliminar a ${teacherName}?`;
-            }
-            
-            // Update form action
-            deleteForm.action = `/users/teachers/${teacherId}/delete`;
-        });
-    }
+    initializeDeleteButtons('.open-delete-teacher-modal', function(button) {
+        const teacherId = button.getAttribute('data-teacher-id');
+        return `/users/teachers/${teacherId}/delete`;
+    });
 }
 
 // Auto Close Alerts

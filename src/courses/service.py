@@ -1,14 +1,22 @@
+import os
+from datetime import datetime
+from pathlib import Path
 from typing import List, Optional, Tuple
 
 from flask import Request
 from flask_jwt_extended import get_jwt_identity
 
 from src.database.database import SessionLocal
+from src.models.assignment import Assignment
+from src.models.assignment_submission import AssignmentSubmission
+from src.models.class_model import ClassModel
 from src.models.course import Course
 from src.models.course_student import CourseStudent
 from src.models.course_subject import CourseSubject
-from src.models.user import User, UserRole
 from src.models.subject import Subject
+from src.models.user import User, UserRole
+from src.models.evaluation import Evaluation
+from src.models.evaluation_submission import EvaluationSubmission
 
 from .validation import (
     CourseCreateSchema,
@@ -19,11 +27,41 @@ from .validation import (
 )
 
 
+def get_available_course_names() -> List[str]:
+    """Genera lista de nombres de cursos disponibles"""
+
+    course_names = ["Sexto", "Séptimo", "Octavo", "Noveno", "Décimo", "Undécimo"]
+    return course_names
+
+
+# Diccionario de cursos ordenados por grado
+COURSE_NAME_ORDER = {
+    "Sexto": 1,
+    "Séptimo": 2,
+    "Octavo": 3,
+    "Noveno": 4,
+    "Décimo": 5,
+    "Undécimo": 6,
+}
+
+# Mapeo de nombres de cursos a números de grado
+COURSE_NAME_TO_GRADE = {
+    "Sexto": 6,
+    "Séptimo": 7,
+    "Octavo": 8,
+    "Noveno": 9,
+    "Décimo": 10,
+    "Undécimo": 11,
+}
+
+
+def get_grade_number_from_course_name(course_name: str) -> Optional[int]:
+    """Extrae el número del grado del nombre del curso"""
+    return COURSE_NAME_TO_GRADE.get(course_name)
+
+
 def get_courses_service(
     academic_year: Optional[str] = None,
-    period: Optional[int] = None,
-    grade_level: Optional[str] = None,
-    is_active: Optional[bool] = None,
 ) -> Tuple[List[CourseResponseSchema], int]:
     """Obtener lista de cursos"""
     db = SessionLocal()
@@ -33,31 +71,48 @@ def get_courses_service(
         # Aplicar filtros
         if academic_year:
             query = query.filter(Course.academic_year == academic_year)
-        if period:
-            query = query.filter(Course.period == period)
-        if grade_level:
-            query = query.filter(Course.grade_level == grade_level)
-        if is_active is not None:
-            query = query.filter(Course.is_active == is_active)
 
-        courses = query.order_by(
-            Course.academic_year.desc(), Course.period, Course.grade_level
-        ).all()
-
-        return [
+        courses = query.all()
+        course_schemas = [
             CourseResponseSchema(
                 id=course.id,
                 academic_year=course.academic_year,
-                period=course.period,
-                grade_level=course.grade_level,
                 name=course.name,
-                is_active=course.is_active,
                 created_by=course.created_by,
                 created_at=course.created_at,
                 updated_at=course.updated_at,
             )
             for course in courses
-        ], len(courses)
+        ]
+
+        # Ordenar solo por orden lógico de grados
+        course_schemas.sort(key=lambda c: COURSE_NAME_ORDER.get(c.name, 999))
+        return course_schemas, len(course_schemas)
+    finally:
+        db.close()
+
+
+def get_all_courses_for_dashboard() -> List[dict]:
+    """Obtener todos los cursos con información para el dashboard"""
+    db = SessionLocal()
+    try:
+        courses = db.query(Course).order_by(Course.name).all()
+
+        courses_list = []
+        for course in courses:
+            grade_number = get_grade_number_from_course_name(course.name)
+            courses_list.append(
+                {
+                    "id": course.id,
+                    "name": course.name,
+                    "academic_year": course.academic_year,
+                    "grade_number": grade_number if grade_number else course.id,
+                }
+            )
+
+        # Ordenar cursos en orden descendente
+        courses_list.sort(key=lambda x: x["grade_number"], reverse=False)
+        return courses_list
     finally:
         db.close()
 
@@ -75,10 +130,7 @@ def get_course_service(
         return CourseResponseSchema(
             id=course.id,
             academic_year=course.academic_year,
-            period=course.period,
-            grade_level=course.grade_level,
             name=course.name,
-            is_active=course.is_active,
             created_by=course.created_by,
             created_at=course.created_at,
             updated_at=course.updated_at,
@@ -93,13 +145,13 @@ def create_course_service(
     """Crear un nuevo curso"""
     db = SessionLocal()
     try:
-        # Verificar si ya existe un curso con el mismo nombre en el mismo año y período
+        academic_year = str(datetime.now().year)
+
+        # Verificar si ya existe un curso con el mismo nombre en el mismo año
         existing_course = (
             db.query(Course)
             .filter(
-                (Course.name == data.name)
-                & (Course.academic_year == data.academic_year)
-                & (Course.period == data.period)
+                (Course.name == data.name) & (Course.academic_year == academic_year)
             )
             .first()
         )
@@ -109,9 +161,7 @@ def create_course_service(
 
         current_user_id = get_jwt_identity()
         course = Course(
-            academic_year=data.academic_year,
-            period=data.period,
-            grade_level=data.grade_level,
+            academic_year=academic_year,
             name=data.name,
             created_by=current_user_id,
         )
@@ -123,10 +173,7 @@ def create_course_service(
         return CourseResponseSchema(
             id=course.id,
             academic_year=course.academic_year,
-            period=course.period,
-            grade_level=course.grade_level,
             name=course.name,
-            is_active=course.is_active,
             created_by=course.created_by,
             created_at=course.created_at,
             updated_at=course.updated_at,
@@ -154,8 +201,7 @@ def update_course_service(
                 db.query(Course)
                 .filter(
                     Course.name == data.name,
-                    Course.academic_year == data.academic_year or course.academic_year,
-                    Course.period == data.period or course.period,
+                    Course.academic_year == course.academic_year,
                     Course.id != course_id,
                 )
                 .first()
@@ -165,16 +211,8 @@ def update_course_service(
                 return None, 400
 
         # Actualizar campos si se proporcionan
-        if data.academic_year is not None:
-            course.academic_year = data.academic_year
-        if data.period is not None:
-            course.period = data.period
-        if data.grade_level is not None:
-            course.grade_level = data.grade_level
         if data.name is not None:
             course.name = data.name
-        if data.is_active is not None:
-            course.is_active = data.is_active
 
         db.commit()
         db.refresh(course)
@@ -182,10 +220,7 @@ def update_course_service(
         return CourseResponseSchema(
             id=course.id,
             academic_year=course.academic_year,
-            period=course.period,
-            grade_level=course.grade_level,
             name=course.name,
-            is_active=course.is_active,
             created_by=course.created_by,
             created_at=course.created_at,
             updated_at=course.updated_at,
@@ -200,15 +235,15 @@ def update_course_service(
 def delete_course_service(
     course_id: int, request: Request
 ) -> Tuple[Optional[dict], int]:
-    """Eliminar un curso (soft delete)"""
+    """Eliminar un curso"""
     db = SessionLocal()
     try:
         course = db.query(Course).filter(Course.id == course_id).first()
         if not course:
             return None, 404
 
-        # Soft delete: marcar como inactivo
-        course.is_active = False
+        # Hard delete: eliminar el curso directamente
+        db.delete(course)
         db.commit()
 
         return {"message": "Curso eliminado exitosamente"}, 200
@@ -226,7 +261,7 @@ def get_course_students_service(course_id: int) -> Tuple[List[dict], int]:
         course_students = (
             db.query(CourseStudent, User)
             .join(User, CourseStudent.student_id == User.id)
-            .filter(CourseStudent.course_id == course_id, CourseStudent.is_active)
+            .filter(CourseStudent.course_id == course_id)
             .all()
         )
 
@@ -243,6 +278,55 @@ def get_course_students_service(course_id: int) -> Tuple[List[dict], int]:
             )
 
         return students, 200
+    finally:
+        db.close()
+
+
+def get_course_students_for_view_service(
+    course_id: int,
+) -> Tuple[Optional[dict], List[dict], int]:
+    """Obtener curso y estudiantes para la vista de estudiantes"""
+    db = SessionLocal()
+    try:
+        # Obtener información del curso
+        course = db.query(Course).filter(Course.id == course_id).first()
+        if not course:
+            return None, [], 404
+
+        # Obtener estudiantes del curso
+        course_students = (
+            db.query(CourseStudent, User)
+            .join(User, CourseStudent.student_id == User.id)
+            .filter(CourseStudent.course_id == course_id)
+            .filter(User.role == UserRole.STUDENT)
+            .all()
+        )
+
+        # Convertir a lista de diccionarios
+        students_list = []
+        for course_student, student_user in course_students:
+            students_list.append(
+                {
+                    "id": student_user.id,
+                    "full_name": student_user.full_name or student_user.username,
+                    "document": student_user.document,
+                    "enrolled_at": course_student.enrolled_at,
+                }
+            )
+
+        # Extraer número del grado
+        grade_number = get_grade_number_from_course_name(course.name)
+        if not grade_number:
+            grade_number = course.id
+
+        course_data = {
+            "id": course.id,
+            "name": course.name,
+            "academic_year": course.academic_year,
+            "grade_number": grade_number,
+        }
+
+        return course_data, students_list, 200
     finally:
         db.close()
 
@@ -278,18 +362,10 @@ def add_student_to_course_service(
         )
 
         if existing_enrollment:
-            if existing_enrollment.is_active:
-                return None, 400  # Ya está inscrito
-            else:
-                # Reactivar inscripción
-                existing_enrollment.is_active = True
-                db.commit()
-                return {"message": "Estudiante agregado al curso exitosamente"}, 200
+            return None, 400  # Ya está inscrito
 
         # Crear nueva inscripción
-        course_student = CourseStudent(
-            course_id=course_id, student_id=data.student_id, is_active=data.is_active
-        )
+        course_student = CourseStudent(course_id=course_id, student_id=data.student_id)
 
         db.add(course_student)
         db.commit()
@@ -320,7 +396,8 @@ def remove_student_from_course_service(
         if not course_student:
             return None, 404
 
-        course_student.is_active = False
+        # Hard delete: eliminar la inscripción directamente
+        db.delete(course_student)
         db.commit()
 
         return {"message": "Estudiante removido del curso exitosamente"}, 200
@@ -335,13 +412,12 @@ def get_course_subjects_service(course_id: int) -> Tuple[List[dict], int]:
     """Obtener materias de un curso"""
     db = SessionLocal()
     try:
-
         course_subjects = (
             db.query(CourseSubject, User, Course, Subject)
             .join(User, CourseSubject.teacher_id == User.id)
             .join(Course, CourseSubject.course_id == Course.id)
             .join(Subject, CourseSubject.subject_id == Subject.id)
-            .filter(CourseSubject.course_id == course_id, CourseSubject.is_active)
+            .filter(CourseSubject.course_id == course_id)
             .all()
         )
 
@@ -395,20 +471,13 @@ def add_subject_to_course_service(
         )
 
         if existing_assignment:
-            if existing_assignment.is_active:
-                return None, 400  # Ya está asignado
-            else:
-                # Reactivar asignación
-                existing_assignment.is_active = True
-                db.commit()
-                return {"message": "Materia agregada al curso exitosamente"}, 200
+            return None, 400  # Ya está asignado
 
         # Crear nueva asignación
         course_subject = CourseSubject(
             course_id=course_id,
             subject_id=data.subject_id,
             teacher_id=data.teacher_id,
-            is_active=data.is_active,
         )
 
         db.add(course_subject)
@@ -441,12 +510,312 @@ def remove_subject_from_course_service(
         if not course_subject:
             return None, 404
 
-        course_subject.is_active = False
+        db.delete(course_subject)
         db.commit()
 
         return {"message": "Materia removida del curso exitosamente"}, 200
     except Exception:
         db.rollback()
         return None, 500
+    finally:
+        db.close()
+
+
+def get_student_tasks_service(
+    course_id: int, student_id: int
+) -> Tuple[Optional[dict], List[dict], int]:
+    """Obtener tareas/asignaciones de un estudiante en un curso, agrupadas por asignatura"""
+    db = SessionLocal()
+    try:
+        # Verificar que el curso existe
+        course = db.query(Course).filter(Course.id == course_id).first()
+        if not course:
+            return None, [], 404
+
+        # Verificar que el estudiante existe y está inscrito en el curso
+        student = db.query(User).filter(User.id == student_id).first()
+        if not student:
+            return None, [], 404
+
+        course_student = (
+            db.query(CourseStudent)
+            .filter(
+                CourseStudent.course_id == course_id,
+                CourseStudent.student_id == student_id,
+            )
+            .first()
+        )
+        if not course_student:
+            return None, [], 404
+
+        # Obtener todas las materias del curso (aunque no tengan asignaciones)
+        course_subjects = (
+            db.query(CourseSubject, Subject)
+            .join(Subject, CourseSubject.subject_id == Subject.id)
+            .filter(CourseSubject.course_id == course_id)
+            .order_by(Subject.name)
+            .all()
+        )
+
+        # Crear diccionario con todas las materias del curso
+        subjects_dict = {}
+        for course_subject, subject in course_subjects:
+            subjects_dict[subject.id] = {
+                "subject_id": subject.id,
+                "subject_name": subject.name,
+                "classes": [],
+            }
+
+        # Obtener todas las asignaciones (tareas) enviadas por el estudiante
+        submissions = (
+            db.query(
+                AssignmentSubmission,
+                Assignment,
+                ClassModel,
+                Subject,
+            )
+            .join(Assignment, AssignmentSubmission.assignment_id == Assignment.id)
+            .join(ClassModel, Assignment.class_id == ClassModel.id)
+            .join(Subject, ClassModel.subject_id == Subject.id)
+            .filter(
+                ClassModel.course_id == course_id,
+                AssignmentSubmission.student_id == student_id,
+            )
+            .order_by(Subject.name, Assignment.title)
+            .all()
+        )
+
+        # Agrupar asignaciones por asignatura
+        for submission, assignment, class_model, subject in submissions:
+            if subject.id in subjects_dict:
+                subjects_dict[subject.id]["classes"].append(
+                    {
+                        "id": assignment.id,
+                        "title": assignment.title,
+                        "class_number": class_model.class_number,
+                        "date": submission.submitted_at.strftime("%d-%m-%y")
+                        if submission.submitted_at
+                        else "",
+                        "description": assignment.description,
+                    }
+                )
+
+        # Si no hay asignaciones, no agregar datos de ejemplo
+        # Solo mostrar un mensaje en la vista
+
+        # Convert to ordered list
+        subjects_list = list(subjects_dict.values())
+
+        # Preparar datos del curso y estudiante
+        course_data = {
+            "id": course.id,
+            "name": course.name,
+            "academic_year": course.academic_year,
+            "grade_number": get_grade_number_from_course_name(course.name),
+        }
+
+        student_data = {
+            "id": student.id,
+            "full_name": student.full_name or student.username,
+            "document": student.document,
+        }
+
+        return {"course": course_data, "student": student_data}, subjects_list, 200
+    except Exception as e:
+        import traceback
+
+        error_trace = traceback.format_exc()
+        print(f"Error en get_student_tasks_service: {str(e)}\n{error_trace}")
+        return None, [], 500
+    finally:
+        db.close()
+
+
+def download_assignment_submission_service(
+    course_id: int, student_id: int, assignment_id: int
+) -> Tuple[Optional[dict], int]:
+    """Obtener el archivo de una entrega de asignación"""
+    db = SessionLocal()
+    try:
+        # Verificar que la entrega existe
+        submission = (
+            db.query(AssignmentSubmission)
+            .join(Assignment, AssignmentSubmission.assignment_id == Assignment.id)
+            .join(ClassModel, Assignment.class_id == ClassModel.id)
+            .filter(
+                AssignmentSubmission.student_id == student_id,
+                AssignmentSubmission.assignment_id == assignment_id,
+                ClassModel.course_id == course_id,
+            )
+            .first()
+        )
+
+        if not submission or not submission.file_url:
+            return None, 404
+
+        # Retornar la ruta del archivo y su información
+        return {
+            "file_url": submission.file_url,
+            "submission_text": submission.submission_text,
+            "student_id": submission.student_id,
+            "assignment_id": submission.assignment_id,
+        }, 200
+    except Exception as e:
+        print(f"Error en download_assignment_submission_service: {str(e)}")
+        return None, 500
+    finally:
+        db.close()
+
+
+def delete_assignment_submission_service(
+    course_id: int, student_id: int, assignment_id: int
+) -> Tuple[Optional[dict], int]:
+    """Eliminar una entrega de asignación (archivo y registro)"""
+    db = SessionLocal()
+    try:
+        # Verificar que la entrega existe
+        submission = (
+            db.query(AssignmentSubmission)
+            .join(Assignment, AssignmentSubmission.assignment_id == Assignment.id)
+            .join(ClassModel, Assignment.class_id == ClassModel.id)
+            .filter(
+                AssignmentSubmission.student_id == student_id,
+                AssignmentSubmission.assignment_id == assignment_id,
+                ClassModel.course_id == course_id,
+            )
+            .first()
+        )
+
+        if not submission:
+            return None, 404
+
+        # Obtener la ruta del archivo antes de eliminar el registro
+        file_url = submission.file_url
+
+        # Eliminar el archivo físico si existe
+        if file_url:
+            try:
+                # Construir la ruta completa del archivo
+                # Asumiendo que file_url es una ruta relativa como "uploads/assignments/..."
+                file_path = Path("src/static") / file_url.lstrip("/")
+
+                if file_path.exists():
+                    os.remove(file_path)
+            except Exception as e:
+                print(f"Error al eliminar archivo físico: {str(e)}")
+                # Continuar incluso si no se puede eliminar el archivo
+
+        # Eliminar el registro de la base de datos
+        db.delete(submission)
+        db.commit()
+
+        return {"message": "Entrega eliminada exitosamente"}, 200
+    except Exception as e:
+        db.rollback()
+        print(f"Error en delete_assignment_submission_service: {str(e)}")
+        return None, 500
+    finally:
+        db.close()
+
+
+def get_student_evaluations_service(
+    course_id: int, student_id: int
+) -> Tuple[Optional[dict], List[dict], int]:
+    """Obtener evaluaciones de un estudiante en un curso, agrupadas por asignatura"""
+    db = SessionLocal()
+    try:
+        # Verificar que el curso existe
+        course = db.query(Course).filter(Course.id == course_id).first()
+        if not course:
+            return None, [], 404
+
+        # Verificar que el estudiante existe y está inscrito en el curso
+        student = db.query(User).filter(User.id == student_id).first()
+        if not student:
+            return None, [], 404
+
+        course_student = (
+            db.query(CourseStudent)
+            .filter(
+                CourseStudent.course_id == course_id,
+                CourseStudent.student_id == student_id,
+            )
+            .first()
+        )
+        if not course_student:
+            return None, [], 404
+
+        # Obtener todas las materias del curso
+        course_subjects = (
+            db.query(CourseSubject, Subject)
+            .join(Subject, CourseSubject.subject_id == Subject.id)
+            .filter(CourseSubject.course_id == course_id)
+            .order_by(Subject.name)
+            .all()
+        )
+
+        # Crear diccionario con todas las materias del curso
+        subjects_dict = {}
+        for _, subject in course_subjects:
+            subjects_dict[subject.id] = {
+                "subject_id": subject.id,
+                "subject_name": subject.name,
+                "evaluations": [],
+            }
+
+        # Obtener todas las evaluaciones enviadas por el estudiante
+        submissions = (
+            db.query(
+                EvaluationSubmission,
+                Evaluation,
+                Subject,
+            )
+            .join(Evaluation, EvaluationSubmission.evaluation_id == Evaluation.id)
+            .join(Subject, Evaluation.subject_id == Subject.id)
+            .filter(
+                Evaluation.course_id == course_id,
+                EvaluationSubmission.student_id == student_id,
+                EvaluationSubmission.is_completed.is_(True),
+            )
+            .order_by(Subject.name, Evaluation.title)
+            .all()
+        )
+
+        # Agrupar evaluaciones por asignatura
+        for submission, evaluation, subject in submissions:
+            if subject.id in subjects_dict:
+                subjects_dict[subject.id]["evaluations"].append(
+                    {
+                        "submission_id": submission.id,
+                        "evaluation_id": evaluation.id,
+                        "title": evaluation.title,
+                        "description": evaluation.description,
+                        "score": submission.score,
+                        "correct_answers": submission.correct_answers,
+                        "total_questions": submission.total_questions,
+                        "submitted_at": submission.submitted_at,
+                    }
+                )
+
+        # Convert to ordered list
+        subjects_list = list(subjects_dict.values())
+
+        # Preparar datos del curso y estudiante
+        course_data = {
+            "id": course.id,
+            "name": course.name,
+            "academic_year": course.academic_year,
+            "grade_number": get_grade_number_from_course_name(course.name),
+        }
+
+        student_data = {
+            "id": student.id,
+            "full_name": student.full_name or student.username,
+            "document": student.document,
+        }
+
+        return {"course": course_data, "student": student_data}, subjects_list, 200
+    except Exception:
+        return None, [], 500
     finally:
         db.close()

@@ -1,5 +1,5 @@
 from flask import Request, Response, flash, redirect, render_template, url_for
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from pydantic import ValidationError
 
 from src.models.user import UserRole
@@ -11,8 +11,15 @@ from .service import (
     get_course_service,
     get_courses_service,
     update_course_service,
+    get_available_course_names,
 )
 from .validation import CourseCreateSchema, CourseUpdateSchema
+from .service import get_course_subjects_service
+from src.subject.service import (
+    get_teachers_for_form_service,
+    get_available_subject_names,
+)
+from src.users.service import get_user_service
 
 
 # View to manage courses
@@ -21,10 +28,13 @@ from .validation import CourseCreateSchema, CourseUpdateSchema
 def courses_management_controller(request: Request) -> Response:
     """View to manage courses"""
     try:
-        courses, total = get_courses_service()
-        # Load subjects for each course
-        from .service import get_course_subjects_service
+        current_user_id = get_jwt_identity()
+        current_user, _ = get_user_service(current_user_id, _)
 
+        courses, total = get_courses_service()
+        available_courses = get_available_course_names()
+        teachers = get_teachers_for_form_service()
+        available_subjects = get_available_subject_names()
         courses_with_subjects = []
 
         for course in courses:
@@ -32,10 +42,7 @@ def courses_management_controller(request: Request) -> Response:
             course_dict = {
                 "id": course.id,
                 "academic_year": course.academic_year,
-                "period": course.period,
-                "grade_level": course.grade_level,
                 "name": course.name,
-                "is_active": course.is_active,
                 "created_by": course.created_by,
                 "created_at": course.created_at,
                 "updated_at": course.updated_at,
@@ -44,11 +51,27 @@ def courses_management_controller(request: Request) -> Response:
             courses_with_subjects.append(course_dict)
 
         return render_template(
-            "admin/courses_management.html", courses=courses_with_subjects, total=total
+            "admin/courses_management.html",
+            courses=courses_with_subjects,
+            total=total,
+            user=current_user,
+            available_courses=available_courses,
+            teachers=teachers,
+            available_subjects=available_subjects,
+            accion_logout=True,
         )
     except Exception as e:
         flash(f"Error al cargar la lista de cursos: {str(e)}", "danger")
-        return render_template("admin/courses_management.html", courses=[], total=0)
+        return render_template(
+            "admin/courses_management.html",
+            courses=[],
+            total=0,
+            user=current_user,
+            available_courses=[],
+            teachers=[],
+            available_subjects=[],
+            accion_logout=True,
+        )
 
 
 @jwt_required()
@@ -56,7 +79,7 @@ def courses_management_controller(request: Request) -> Response:
 def create_course_controller(request: Request) -> Response:
     """View to create a new course"""
     if request.method == "GET":
-        return render_template("admin/create_course.html")
+        return redirect(url_for("courses.courses_management"))
 
     try:
         data = request.form.to_dict()
@@ -68,19 +91,19 @@ def create_course_controller(request: Request) -> Response:
             return redirect(url_for("courses.courses_management"))
         elif status_code == 400:
             flash(
-                "Ya existe un curso con ese nombre en el mismo año y período", "danger"
+                "Ya existe un curso con ese nombre en el mismo año académico", "danger"
             )
-            return render_template("admin/create_course.html")
+            return redirect(url_for("courses.courses_management"))
         else:
             flash("Error al crear el curso", "danger")
-            return render_template("admin/create_course.html")
+            return redirect(url_for("courses.courses_management"))
 
     except ValidationError as e:
         flash(f"Datos inválidos: {str(e)}", "danger")
-        return render_template("admin/create_course.html")
+        return redirect(url_for("courses.courses_management"))
     except Exception as e:
         flash(f"Error interno: {str(e)}", "danger")
-        return render_template("admin/create_course.html")
+        return redirect(url_for("courses.courses_management"))
 
 
 @jwt_required()
@@ -93,7 +116,9 @@ def edit_course_controller(course_id: int, request: Request) -> Response:
             if status_code == 404:
                 flash("Curso no encontrado", "danger")
                 return redirect(url_for("courses.courses_management"))
-            return render_template("admin/edit_course.html", course=course)
+            return render_template(
+                "admin/edit_course.html", course=course, accion_logout=True
+            )
         except Exception as e:
             flash(f"Error al cargar el curso: {str(e)}", "danger")
             return redirect(url_for("courses.courses_management"))
@@ -116,17 +141,25 @@ def edit_course_controller(course_id: int, request: Request) -> Response:
             flash(
                 "Ya existe un curso con ese nombre en el mismo año y período", "danger"
             )
-            return render_template("admin/edit_course.html", course=result)
+            return render_template(
+                "admin/edit_course.html", course=result, accion_logout=True
+            )
         else:
             flash("Error al actualizar el curso", "danger")
-            return render_template("admin/edit_course.html", course=result)
+            return render_template(
+                "admin/edit_course.html", course=result, accion_logout=True
+            )
 
     except ValidationError as e:
         flash(f"Datos inválidos: {str(e)}", "danger")
-        return render_template("admin/edit_course.html", course=course_data)
+        return render_template(
+            "admin/edit_course.html", course=course_data, accion_logout=True
+        )
     except Exception as e:
         flash(f"Error interno: {str(e)}", "danger")
-        return render_template("admin/edit_course.html", course=course_data)
+        return render_template(
+            "admin/edit_course.html", course=course_data, accion_logout=True
+        )
 
 
 @jwt_required()
@@ -174,6 +207,7 @@ def course_detail_controller(course_id: int, request: Request) -> Response:
             course=course,
             students=students,
             subjects=subjects,
+            accion_logout=True,
         )
     except Exception as e:
         flash(f"Error al cargar el detalle del curso: {str(e)}", "danger")
@@ -214,7 +248,7 @@ def remove_subject_from_course_controller(
     try:
         from .service import remove_subject_from_course_service
 
-        result, status_code = remove_subject_from_course_service(
+        _, status_code = remove_subject_from_course_service(
             course_id, subject_id, teacher_id, request
         )
 
@@ -227,4 +261,4 @@ def remove_subject_from_course_controller(
     except Exception as e:
         flash(f"Error interno: {str(e)}", "danger")
 
-    return redirect(url_for("courses.course_detail", course_id=course_id))
+    return redirect(url_for("courses.courses_management"))

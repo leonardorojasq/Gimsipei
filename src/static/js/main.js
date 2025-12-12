@@ -49,8 +49,26 @@ document.addEventListener('DOMContentLoaded', function () {
     setupPasswordToggle('#password', '#togglePassword');
     setupPasswordToggle('#confirm_password', '#toggleConfirmPassword');
 });
+// SLIDER ADMIN
+
+if(document.querySelector('.mySwiper') && screen.width>1080){
+    var swiper = new Swiper(".mySwiper", {
+
+    direction: "vertical",   // 👈 scroll vertical
+    mousewheel: {
+        releaseOnEdges: true,  // permite salir al final si quieres
+    },
+    speed: 600,              // velocidad de transición
+    scrollbar: {
+        el: ".swiper-scrollbar",
+        draggable: true,
+    },
+});
+}
 
 
+
+<<<<<<< HEAD
 // Función para manejar el dropdown
 document.querySelectorAll(".grado").forEach((grado) => {
     grado.addEventListener("click", () => {
@@ -83,3 +101,24 @@ if (menu) {
 }
 
 
+=======
+// Menú hamburguesa - solo si existe el elemento
+const hamburger = document.getElementById('hamburger');
+const mobileNav = document.getElementById('mobileNav');
+
+if (hamburger && mobileNav) {
+    hamburger.addEventListener('click', function () {
+        mobileNav.classList.toggle('active');
+        // Animación para el menú hamburguesa (opcional)
+        this.classList.toggle('open');
+    });
+
+    let menu = document.querySelectorAll('.mobile-nav li a')
+    menu.forEach(item => {
+        item.addEventListener('click', () => {
+            mobileNav.classList.remove('active');
+            hamburger.classList.remove('open');
+        });
+    });
+}
+>>>>>>> b11cdacab8879050af84464ced655db683d4adc3
