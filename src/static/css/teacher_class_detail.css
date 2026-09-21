@@ -321,6 +321,8 @@
     color: #555;
     line-height: 1.6;
     margin-bottom: 1rem;
+    /* el contenido es texto plano: los saltos de linea del textarea se respetan */
+    white-space: pre-line;
 }
 
 .content-item-image {
@@ -384,6 +386,8 @@
     color: #555;
     line-height: 1.6;
     margin-bottom: 1rem;
+    /* la descripcion es texto plano: los saltos de linea del textarea se respetan */
+    white-space: pre-line;
 }
 
 .task-item-meta {

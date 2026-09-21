@@ -73,9 +73,7 @@
 
                     <div class="d-flex gap-5 justify-content-between align-items-center content_homework">
                         {% if content.content_text %}
-                        <div class="content-item-text" data-youtube-embed>
-                            {{ content.content_text | safe }}
-                        </div>
+                        <div class="content-item-text" data-youtube-embed>{{ content.content_text }}</div>
                         {% endif %}
 
                         {% if content.content_image %}
