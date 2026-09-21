@@ -79,10 +79,7 @@
     // Clic en el fondo (fuera de la imagen) cierra el visor
     stage.addEventListener("click", (e) => {
       // Si venimos de arrastrar la imagen, el click no debe cerrar
-      if (moved) {
-        moved = false;
-        return;
-      }
+      if (moved) return;
       if (e.target === stage) close();
     });
 
@@ -243,6 +240,12 @@
         go(dx < 0 ? 1 : -1);
       }
     }
+
+    // El click de compatibilidad, si el navegador lo emite, llega en este mismo
+    // turno y tiene que ver moved=true para que arrastrar no cierre el visor.
+    // Recien despues se limpia: en touch un swipe no emite ningun click, y sin
+    // esto el flag quedaba pegado y se comia el siguiente tap en el fondo.
+    if (moved) setTimeout(() => { moved = false; }, 0);
   }
 
   // ---------- Teclado ----------
