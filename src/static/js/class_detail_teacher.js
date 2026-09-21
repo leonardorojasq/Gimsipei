@@ -137,8 +137,9 @@ function editContent(contentId) {
 
       // Set content text
       if (textElement) {
+        // youtube_embed.js reemplaza los links por reproductores, el texto original queda en el data-attribute
         document.getElementById("content_text").value =
-          textElement.textContent.trim();
+          textElement.dataset.originalText ?? textElement.textContent.trim();
       }
 
       // Show current image if exists
@@ -266,7 +267,9 @@ function editAssignment(assignmentId) {
       }
 
       if (descriptionElement) {
+        // youtube_embed.js reemplaza los links por reproductores, el texto original queda en el data-attribute
         document.getElementById("assignment_description").value =
+          descriptionElement.dataset.originalText ??
           descriptionElement.textContent.trim();
       } else {
         document.getElementById("assignment_description").value = "";

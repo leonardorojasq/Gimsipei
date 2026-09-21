@@ -7,6 +7,8 @@
 <link href="{{ url_for('static', filename='css/category.css') }}" rel="stylesheet">
 <link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
 <link href="{{ url_for('static', filename='css/class_detail.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/image_gallery.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/youtube_embed.css') }}" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 {% endblock %}
@@ -29,7 +31,7 @@
         </div>
 
         <div class="content-body">
-            <div class="text-column">
+            <div class="text-column" data-image-gallery>
                 {% if contents %}
                     <!-- Contenido Dinámico del Docente -->
                     {% for content in contents %}
@@ -39,7 +41,7 @@
 
                         <div class="d-flex gap-5 justify-content-between align-items-center content_homework">
                             {% if content.content_text %}
-                                <div class="section-text">
+                                <div class="section-text" data-youtube-embed>
                                     {{ content.content_text | safe }}
                                 </div>
                             {% endif %}
@@ -86,9 +88,9 @@
                                     </div>
 
                                     {% if assignment.description %}
-                                        <p style="color: #555; margin-bottom: 0.75rem; font-size: 0.95rem;">
+                                        <div data-youtube-embed style="color: #555; margin-bottom: 0.75rem; font-size: 0.95rem;">
                                             {{ assignment.description }}
-                                        </p>
+                                        </div>
                                     {% endif %}
 
                                     <div style="display: flex; 
@@ -142,4 +144,6 @@
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/class_detail_student.js') }}"></script>
+<script src="{{ url_for('static', filename='js/image_gallery.js') }}"></script>
+<script src="{{ url_for('static', filename='js/youtube_embed.js') }}"></script>
 {% endblock %}
