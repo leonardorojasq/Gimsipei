@@ -331,3 +331,10 @@ input[type="file"] {
         flex: auto;
     }
 }
+
+/* El contenido de clase es texto plano cargado desde un textarea:
+   los saltos de linea se respetan (el formulario lo promete). */
+.section-text {
+    line-height: 1.6;
+    white-space: pre-line;
+}
