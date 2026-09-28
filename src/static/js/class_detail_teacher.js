@@ -138,8 +138,11 @@ function editContent(contentId) {
       // Set content text
       if (textElement) {
         // youtube_embed.js reemplaza los links por reproductores, el texto original queda en el data-attribute
-        document.getElementById("content_text").value =
+        const contentText = document.getElementById("content_text");
+        contentText.value =
           textElement.dataset.originalText ?? textElement.textContent.trim();
+        // Actualiza la vista previa de fórmulas (formula_editor.js)
+        contentText.dispatchEvent(new Event("input", { bubbles: true }));
       }
 
       // Show current image if exists
@@ -266,14 +269,17 @@ function editAssignment(assignmentId) {
           titleElement.textContent.trim();
       }
 
+      const descriptionInput = document.getElementById("assignment_description");
       if (descriptionElement) {
         // youtube_embed.js reemplaza los links por reproductores, el texto original queda en el data-attribute
-        document.getElementById("assignment_description").value =
+        descriptionInput.value =
           descriptionElement.dataset.originalText ??
           descriptionElement.textContent.trim();
       } else {
-        document.getElementById("assignment_description").value = "";
+        descriptionInput.value = "";
       }
+      // Actualiza la vista previa de fórmulas (formula_editor.js)
+      descriptionInput.dispatchEvent(new Event("input", { bubbles: true }));
 
       // Extract due date and max score from meta elements
       metaElements.forEach((span) => {
