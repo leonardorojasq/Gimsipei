@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button type="button" class="question-remove" style="border:none;background:transparent;color:#999;font-size:1.1rem;cursor:pointer;">&times;</button>
             </div>
             <div class="form-group">
-                <input type="text" class="question-text" placeholder="Escribe la pregunta">
+                <input type="text" class="question-text" placeholder="Escribe la pregunta" data-formula-editor>
             </div>
             <div class="form-group">
                 <select class="question-type">
@@ -204,14 +204,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             const optionWrapper = document.createElement('div');
             optionWrapper.className = 'option-item';
-            optionWrapper.style.display = 'flex';
-            optionWrapper.style.alignItems = 'center';
-            optionWrapper.style.marginBottom = '0.25rem';
+            optionWrapper.style.marginBottom = '0.5rem';
+
+            // El botón de fórmulas (formula_editor.js) se ubica debajo de esta fila
+            const optionRow = document.createElement('div');
+            optionRow.dataset.formulaAnchor = '';
+            optionRow.style.display = 'flex';
+            optionRow.style.alignItems = 'center';
 
             const input = document.createElement('input');
             input.type = 'text';
             input.className = 'option-text';
             input.placeholder = 'Texto de la opción';
+            input.dataset.formulaEditor = '';
             input.style.flex = '1';
             input.style.marginRight = '0.25rem';
 
@@ -229,8 +234,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 rebuildAnswerOptions();
             });
 
-            optionWrapper.appendChild(input);
-            optionWrapper.appendChild(removeOptionBtn);
+            optionRow.appendChild(input);
+            optionRow.appendChild(removeOptionBtn);
+            optionWrapper.appendChild(optionRow);
             optionsList.appendChild(optionWrapper);
 
             rebuildAnswerOptions();

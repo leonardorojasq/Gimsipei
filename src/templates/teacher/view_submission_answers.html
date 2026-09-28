@@ -7,6 +7,7 @@
 <link href="{{ url_for('static', filename='css/category.css') }}" rel="stylesheet">
 <link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
 <link href="{{ url_for('static', filename='css/view_submission_answers.css') }}" rel="stylesheet">
+{% include "math_head.html" %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 {% endblock %}
@@ -62,7 +63,7 @@
                             class="question-card {% if answer and answer.is_correct %}correct{% elif answer %}incorrect{% endif %}">
                             <div class="question-header">
                                 <span class="question-number">{{ loop.index }}</span>
-                                <p class="question-text">
+                                <p class="question-text" data-math>
                                     {{ question.question_text }}
                                     {% if question.question_type.value == 'multi' %}
                                         <em class="question-type"> - Selección múltiple</em>
@@ -86,7 +87,7 @@
                                         <div
                                             class="option-item {% if is_student_answer %}student-selected{% endif %} {% if is_correct_answer %}correct-answer{% endif %}">
                                             <span class="option-letter">{{ option.option_letter }}</span>
-                                            <span class="option-text">{{ option.option_text }}</span>
+                                            <span class="option-text" data-math>{{ option.option_text }}</span>
                                             {% if is_student_answer %}
                                                 <span class="option-badge student">Respuesta del estudiante</span>
                                             {% endif %}
@@ -101,14 +102,14 @@
                                 <div class="open-answer-section">
                                     <div class="answer-block student-answer">
                                         <span class="answer-label">Respuesta del estudiante:</span>
-                                        <div class="answer-content">
+                                        <div class="answer-content" data-math>
                                             {{ answer.answer_text if answer and answer.answer_text else 'No respondió' }}
                                         </div>
                                     </div>
                                     {% if question.correct_answer %}
                                         <div class="answer-block correct-answer">
                                             <span class="answer-label">Respuesta correcta/esperada:</span>
-                                            <div class="answer-content">
+                                            <div class="answer-content" data-math>
                                                 {{ question.correct_answer }}
                                             </div>
                                         </div>
@@ -130,4 +131,5 @@
     {% include "sidebar_aside.html" %}
 </div>
 
+{% include "math_scripts.html" %}
 {% endblock %}

@@ -11,6 +11,7 @@
 <link href="{{ url_for('static', filename='css/image_gallery.css') }}" rel="stylesheet">
 <link href="{{ url_for('static', filename='css/youtube_embed.css') }}" rel="stylesheet">
 <link href="{{ url_for('static', filename='css/modal.css') }}" rel="stylesheet">
+{% include "math_head.html" %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 {% endblock %}
@@ -73,7 +74,7 @@
 
                     <div class="d-flex gap-5 justify-content-between align-items-center content_homework">
                         {% if content.content_text %}
-                        <div class="content-item-text" data-youtube-embed>{{ content.content_text }}</div>
+                        <div class="content-item-text" data-youtube-embed data-math>{{ content.content_text }}</div>
                         {% endif %}
 
                         {% if content.content_image %}
@@ -115,7 +116,7 @@
                     </div>
 
                     {% if assignment.description %}
-                    <div class="task-item-description" data-youtube-embed>{{ assignment.description }}</div>
+                    <div class="task-item-description" data-youtube-embed data-math>{{ assignment.description }}</div>
                     {% endif %}
 
                     <div class="task-item-meta">
@@ -171,4 +172,6 @@
 <script src="{{ url_for('static', filename='js/class_detail_teacher.js') }}"></script>
 <script src="{{ url_for('static', filename='js/image_gallery.js') }}"></script>
 <script src="{{ url_for('static', filename='js/youtube_embed.js') }}"></script>
+{% include "math_scripts.html" %}
+<script src="{{ url_for('static', filename='js/formula_editor.js') }}"></script>
 {% endblock %}

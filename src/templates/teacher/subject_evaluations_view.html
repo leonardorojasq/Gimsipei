@@ -10,6 +10,7 @@
 <link href="{{ url_for('static', filename='css/subject_classes_minimal.css') }}" rel="stylesheet">
 <link href="{{ url_for('static', filename='css/subject_evaluations.css') }}" rel="stylesheet">
 <link href="{{ url_for('static', filename='css/create_evaluation_modal.css') }}" rel="stylesheet">
+{% include "math_head.html" %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
@@ -179,4 +180,6 @@
 <!-- Custom JS -->
 <script src="{{ url_for('static', filename='js/delete_modal.js') }}"></script>
 <script src="{{ url_for('static', filename='js/subject_evaluations.js') }}"></script>
+{% include "math_scripts.html" %}
+<script src="{{ url_for('static', filename='js/formula_editor.js') }}"></script>
 {% endblock %}
