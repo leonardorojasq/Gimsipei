@@ -45,7 +45,6 @@ html {
     flex-direction: column;
     width: 100%;
     padding: 0px 100px;
-<<<<<<< HEAD
     background-color: var(--primario);
     background-image: url("../images/menu-principal/bg-pencil.png");
     background-repeat: no-repeat;
@@ -53,14 +52,6 @@ html {
     position: relative;
 }
 
-=======
-    /* background-color: var(--primario); */
-/* background-image: url("../images/menu-principal/bg-pencil.png");
-    background-repeat: no-repeat;
-    background-size: cover; */
-/* position: relative; */
-/* } */
->>>>>>> b11cdacab8879050af84464ced655db683d4adc3
 .logo {
     width: 300px;
     height: 60px;
@@ -90,16 +81,10 @@ html {
     position: relative;
 }
 
-<<<<<<< HEAD
-.bg-vision .bg-lateral {
-    background-position: top;
-    top: -40%;
-=======
 .bg-vision .content-vision {
     padding: 100px 80px 0px;
     margin: auto;
     width: 100%;
->>>>>>> b11cdacab8879050af84464ced655db683d4adc3
 }
 
 .vision-tp {
@@ -188,10 +173,7 @@ a {
     position: relative;
     margin-top: 200px;
 }
-<<<<<<< HEAD
-=======
 
->>>>>>> b11cdacab8879050af84464ced655db683d4adc3
 .gimsipei-hover:hover {
     background-color: var(--barra-ginsipei);
 }
