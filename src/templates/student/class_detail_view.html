@@ -40,16 +40,15 @@
                             <h3>{{ content.section_title }}</h3>
                         {% endif %}
 
-                        <div class="d-flex gap-5 justify-content-between align-items-center content_homework">
+                        <div class="content_homework">
                             {% if content.content_text %}
                                 <div class="section-text" data-youtube-embed data-math>{{ content.content_text }}</div>
                             {% endif %}
 
                             {% if content.content_image %}
-                                <div style="margin: 1rem 0;">
+                                <div class="content-item-image">
                                     <img src="{{ content.content_image }}"
-                                         alt="{{ content.section_title or 'Imagen de contenido' }}"
-                                         style="max-width: 350px; height: 180px; border-radius: 8px; object-fit: cover;">
+                                         alt="{{ content.section_title or 'Imagen de contenido' }}">
                                 </div>
                             {% endif %}
                         </div>
