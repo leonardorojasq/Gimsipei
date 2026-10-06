@@ -26,7 +26,7 @@ class SubjectUpdate(SubjectBase):
 
 class SubjectInDB(SubjectBase):
     id: int
-    teacher_id: int
+    teacher_id: int | None = None
     created_at: datetime
     updated_at: datetime
 
