@@ -1,3 +1,4 @@
+import contextlib
 import os
 from datetime import datetime
 
@@ -241,10 +242,8 @@ def update_evaluation_service(
             if evaluation.cover_image:
                 old_path = os.path.join("src", evaluation.cover_image.lstrip("/"))
                 if os.path.exists(old_path):
-                    try:
+                    with contextlib.suppress(Exception):
                         os.remove(old_path)
-                    except Exception:
-                        pass
 
             # Guardar nueva imagen
             filename = secure_filename(cover_image.filename)

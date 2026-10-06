@@ -1,3 +1,4 @@
+import contextlib
 import os
 from datetime import UTC, datetime
 
@@ -493,10 +494,8 @@ def update_class_service(class_id: int, data: dict, cover_file=None):
                     "src", class_to_update.cover_image.lstrip("/")
                 )
                 if os.path.exists(old_image_path):
-                    try:
+                    with contextlib.suppress(Exception):
                         os.remove(old_image_path)
-                    except Exception:
-                        pass
 
             # Guardar nueva portada
             filename = secure_filename(cover_file.filename)
@@ -570,10 +569,8 @@ def delete_class_service(class_id: int, user_role: str):
                         "src", submission.file_url.lstrip("/")
                     )
                     if os.path.exists(submission_file_path):
-                        try:
+                        with contextlib.suppress(Exception):
                             os.remove(submission_file_path)
-                        except Exception:
-                            pass
                 db.delete(submission)
             db.delete(assignment)
 
@@ -587,10 +584,8 @@ def delete_class_service(class_id: int, user_role: str):
                     "src", content.content_image.lstrip("/")
                 )
                 if os.path.exists(content_image_path):
-                    try:
+                    with contextlib.suppress(Exception):
                         os.remove(content_image_path)
-                    except Exception:
-                        pass
             db.delete(content)
 
         # Delete resources
@@ -602,18 +597,14 @@ def delete_class_service(class_id: int, user_role: str):
                     "src", resource.cover_image.lstrip("/")
                 )
                 if os.path.exists(resource_cover_path):
-                    try:
+                    with contextlib.suppress(Exception):
                         os.remove(resource_cover_path)
-                    except Exception:
-                        pass
 
             if resource.file_url:
                 resource_file_path = os.path.join("src", resource.file_url.lstrip("/"))
                 if os.path.exists(resource_file_path):
-                    try:
+                    with contextlib.suppress(Exception):
                         os.remove(resource_file_path)
-                    except Exception:
-                        pass
 
             db.delete(resource)
 

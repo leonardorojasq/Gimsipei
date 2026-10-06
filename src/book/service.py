@@ -1,3 +1,4 @@
+import contextlib
 import os
 from datetime import datetime
 
@@ -76,15 +77,11 @@ def create_book_service(
         db.rollback()
         # Limpiar archivos si ocurrió un error
         if file_path and os.path.exists(file_path.lstrip("/")):
-            try:
+            with contextlib.suppress(Exception):
                 os.remove(os.path.join("src", file_path.lstrip("/")))
-            except Exception:
-                pass
         if cover_path and os.path.exists(cover_path.lstrip("/")):
-            try:
+            with contextlib.suppress(Exception):
                 os.remove(os.path.join("src", cover_path.lstrip("/")))
-            except Exception:
-                pass
         import traceback
 
         traceback.print_exc()
@@ -144,10 +141,8 @@ def update_book_service(
             if book.file_path:
                 old_path = os.path.join("src", book.file_path.lstrip("/"))
                 if os.path.exists(old_path):
-                    try:
+                    with contextlib.suppress(Exception):
                         os.remove(old_path)
-                    except Exception:
-                        pass
 
             # Guardar nuevo archivo
             filename = secure_filename(file.filename)
@@ -165,10 +160,8 @@ def update_book_service(
             if book.cover_image:
                 old_path = os.path.join("src", book.cover_image.lstrip("/"))
                 if os.path.exists(old_path):
-                    try:
+                    with contextlib.suppress(Exception):
                         os.remove(old_path)
-                    except Exception:
-                        pass
 
             # Guardar nueva imagen
             filename = secure_filename(cover_image.filename)
