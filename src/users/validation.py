@@ -33,8 +33,8 @@ class StudentCreateSchema(BaseModel):
             if course_id <= 0:
                 raise ValueError("course_id debe ser un entero positivo")
             return course_id
-        except (ValueError, TypeError):
-            raise ValueError("course_id debe ser un entero válido")
+        except (ValueError, TypeError) as err:
+            raise ValueError("course_id debe ser un entero válido") from err
 
     def to_user_create_schema(self) -> UserCreateSchema:
         """Convierte este schema a UserCreateSchema con rol STUDENT"""

@@ -72,8 +72,12 @@ ignore = [
     "E501",   # line length handled by formatter
     "B008",   # function-call-in-default-argument (common in Flask)
     "UP031",  # % string formatting (allowed in i18n/legacy code)
+    "UP042",  # str+Enum (UserRole, ResourceType) — standard Enum pattern
     "SIM108", # use ternary instead of if/else (sometimes clearer not to)
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"main.py" = ["F403"]  # 'from src.models import *' is required for SQLAlchemy Base metadata registration
 
 [tool.ruff.lint.isort]
 known-first-party = ["src"]
