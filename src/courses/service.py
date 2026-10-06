@@ -91,6 +91,72 @@ def get_courses_service(
         db.close()
 
 
+def get_courses_with_subjects_summary() -> list[dict]:
+    """Get every course with its subjects in a single query.
+
+    Replaces the previous loop that called get_course_subjects_service
+    once per course (the N+1 in courses_management_controller). One
+    LEFT OUTER JOIN fetches (course, course_subject, subject, teacher)
+    tuples, then we group by course in Python, preserving the data
+    the admin courses-management template needs.
+    """
+    db = SessionLocal()
+    try:
+        rows = (
+            db.query(
+                Course,
+                CourseSubject,
+                Subject,
+                User,
+            )
+            .outerjoin(CourseSubject, CourseSubject.course_id == Course.id)
+            .outerjoin(Subject, Subject.id == CourseSubject.subject_id)
+            .outerjoin(User, User.id == CourseSubject.teacher_id)
+            .all()
+        )
+
+        course_order: list[int] = []
+        courses_by_id: dict[int, dict] = {}
+        for course, course_subject, subject, teacher in rows:
+            if course.id not in courses_by_id:
+                course_order.append(course.id)
+                courses_by_id[course.id] = {
+                    "id": course.id,
+                    "academic_year": course.academic_year,
+                    "name": course.name,
+                    "created_by": course.created_by,
+                    "created_at": course.created_at,
+                    "updated_at": course.updated_at,
+                    "subjects": [],
+                }
+            if course_subject is not None and subject is not None:
+                teacher_name = None
+                if teacher is not None:
+                    teacher_name = (
+                        teacher.full_name or teacher.username or f"Profesor {teacher.id}"
+                    )
+                courses_by_id[course.id]["subjects"].append(
+                    {
+                        "id": course_subject.id,
+                        "subject_id": subject.id,
+                        "subject_name": subject.name,
+                        "teacher_id": course_subject.teacher_id,
+                        "teacher_name": teacher_name,
+                        "is_active": course_subject.is_active,
+                        "assigned_at": course_subject.assigned_at,
+                    }
+                )
+
+        for course in courses_by_id.values():
+            course["subjects"].sort(key=lambda s: s["subject_name"] or "")
+
+        result = [courses_by_id[cid] for cid in course_order]
+        result.sort(key=lambda c: COURSE_NAME_ORDER.get(c["name"], 999))
+        return result
+    finally:
+        db.close()
+
+
 def get_all_courses_for_dashboard() -> list[dict]:
     """Obtener todos los cursos con información para el dashboard"""
     db = SessionLocal()

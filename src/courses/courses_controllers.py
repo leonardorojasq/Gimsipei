@@ -17,6 +17,7 @@ from .service import (
     get_course_service,
     get_course_subjects_service,
     get_courses_service,
+    get_courses_with_subjects_summary,
     update_course_service,
 )
 from .validation import CourseCreateSchema, CourseUpdateSchema
@@ -35,20 +36,7 @@ def courses_management_controller(_: Request) -> Response:
         available_courses = get_available_course_names()
         teachers = get_teachers_for_form_service()
         available_subjects = get_available_subject_names()
-        courses_with_subjects = []
-
-        for course in courses:
-            subjects, _ = get_course_subjects_service(course.id)
-            course_dict = {
-                "id": course.id,
-                "academic_year": course.academic_year,
-                "name": course.name,
-                "created_by": course.created_by,
-                "created_at": course.created_at,
-                "updated_at": course.updated_at,
-                "subjects": subjects,
-            }
-            courses_with_subjects.append(course_dict)
+        courses_with_subjects = get_courses_with_subjects_summary()
 
         return render_template(
             "admin/courses_management.html",
