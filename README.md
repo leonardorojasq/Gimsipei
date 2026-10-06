@@ -4,7 +4,7 @@ Construcción de un sistema de gestion de pruebas enfocado a la educación.
 
 ## Herramientas utilizadas
 
-- Python 3.11+
+- Python 3.11+ (este proyecto está pinneado a 3.13 vía `.python-version`)
 - Flask
 - [uv](https://docs.astral.sh/uv/) (gestor de paquetes y entornos)
 - [ruff](https://docs.astral.sh/ruff/) (linter + formateador)
@@ -31,12 +31,12 @@ git clone git@github.com:lrojasq/Gimsipei.git
 cd Gimsipei
 ```
 
-### 3. Sincronizar dependencias
+### 3. Crear el entorno virtual
 
-`uv` crea `.venv/` automáticamente e instala todo lo declarado en `pyproject.toml` + `uv.lock`:
+`uv` lee `.python-version` para saber qué versión de Python usar y crea el venv en `.venv/`:
 
 ```bash
-uv sync
+uv venv
 ```
 
 ### 4. Activar el entorno virtual
@@ -49,26 +49,45 @@ source .venv/bin/activate
 .venv\Scripts\activate
 ```
 
-O ejecutá los comandos directamente con `uv run ...` sin necesidad de activar.
+### 5. Sincronizar dependencias
 
-### 5. Configurar variables de entorno
+Con el venv activado, `uv sync` instala en él todo lo declarado en `pyproject.toml` + `uv.lock`:
+
+```bash
+uv sync
+```
+
+### 6. Configurar variables de entorno
 
 Copiá `.env` (si no existe) y completá los valores de tu base de datos.
 
-### 6. Ejecutar el proyecto
+### 7. Ejecutar el proyecto
 
 ```bash
 # Con el venv activado
 python main.py
-
-# O sin activar
-uv run python main.py
 ```
 
-### 7. Abrir en el navegador
+> Si preferís no activar el venv manualmente, podés usar `uv run python main.py` que hace ambos pasos por vos.
+
+### 8. Abrir en el navegador
 
 ```
 http://localhost:5010/
+```
+
+## Versión de Python
+
+El archivo `.python-version` (en la raíz) le dice a `uv` qué versión de Python usar. Si tu sistema no la tiene, uv la descarga automáticamente:
+
+```bash
+uv python install   # instala la versión indicada en .python-version
+```
+
+`pyproject.toml` declara `requires-python = ">=3.11"`. Si querés cambiar la versión pinneada:
+
+```bash
+uv python pin 3.12
 ```
 
 ## Linting y formateo
@@ -97,11 +116,3 @@ uv run pre-commit install
 ```
 
 A partir de ese momento, `git commit` ejecutará `ruff check --fix` y `ruff format` sobre los archivos modificados. Si algo falla, el commit se rechaza.
-
-## Versión de Python
-
-`pyproject.toml` declara `requires-python = ">=3.11"`. Si tu sistema tiene una versión distinta, uv puede administrar la versión correcta automáticamente:
-
-```bash
-uv python install 3.11
-```
