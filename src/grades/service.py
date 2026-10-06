@@ -33,47 +33,50 @@ def get_courses_with_students_service(
     """
     Obtener todos los cursos del sistema junto con los estudiantes de cada curso.
     Para profesores, muestra todos los cursos existentes.
+
+    Single-query implementation: one LEFT OUTER JOIN fetches
+    (course, course_student, user) tuples, then we group by course
+    in Python. Was previously 1 + N + M queries (one for the
+    course list, one per course for enrollments, one per
+    enrollment for the student user). With 12 courses and 100+
+    enrollments that was 115+ round-trips per request.
     """
     db = SessionLocal()
     try:
-        courses = db.query(Course).order_by(Course.name.desc()).all()
+        rows = (
+            db.query(Course, CourseStudent, User)
+            .outerjoin(CourseStudent, CourseStudent.course_id == Course.id)
+            .outerjoin(User, User.id == CourseStudent.student_id)
+            .order_by(Course.name.desc())
+            .all()
+        )
 
-        if not courses:
-            return [], 200
-
-        result = []
-        for course in courses:
-            # Obtener estudiantes del curso
-            enrollments = (
-                db.query(CourseStudent)
-                .filter(CourseStudent.course_id == course.id)
-                .all()
-            )
-
-            students = []
-            for enrollment in enrollments:
-                student = (
-                    db.query(User).filter(User.id == enrollment.student_id).first()
-                )
-                if student:
-                    students.append(
-                        {
-                            "id": student.id,
-                            "full_name": student.full_name,
-                            "document": student.document,
-                        }
-                    )
-
-            result.append(
-                {
+        # Preserve the course ordering from the ORDER BY above, and
+        # collect one students[] per course.
+        course_order: list[int] = []
+        courses_by_id: dict[int, dict] = {}
+        for course, enrollment, student in rows:
+            if course.id not in courses_by_id:
+                course_order.append(course.id)
+                courses_by_id[course.id] = {
                     "id": course.id,
                     "name": course.name,
                     "academic_year": course.academic_year,
-                    "students": students,
+                    "students": [],
                 }
-            )
+            if student is not None:
+                courses_by_id[course.id]["students"].append(
+                    {
+                        "id": student.id,
+                        "full_name": student.full_name,
+                        "document": student.document,
+                    }
+                )
 
-        return result, 200
+        for course in courses_by_id.values():
+            course["students"].sort(key=lambda s: s["full_name"] or "")
+
+        return [courses_by_id[cid] for cid in course_order], 200
     except Exception as e:
         import traceback
 
