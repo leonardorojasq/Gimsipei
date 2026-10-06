@@ -16,7 +16,7 @@ from src.database.database import SessionLocal
 from src.models.user import User, UserRole
 from src.utils.api_response import ApiResponse
 from src.utils.decorator_role_required import role_required
-from src.utils.normalize_role_field import normalize_role_field
+from src.utils.normalize_role_field import get_request_data, normalize_role_field
 
 from .service import (
     create_user_service,
@@ -106,10 +106,7 @@ def create_user_controller(
     request: Request,
 ) -> Response | tuple[UserResponseSchema | None, int]:
     try:
-        if request.is_json:
-            data = request.get_json()
-        else:
-            data = request.form.to_dict()
+        data = get_request_data()
         validated = UserCreateSchema(**data)
         result, status_code = create_user_service(validated, request)
 
@@ -147,10 +144,7 @@ def update_user_controller(
     user_id: int, request: Request
 ) -> Response | tuple[UserResponseSchema | None, int]:
     try:
-        if request.is_json:
-            data = request.get_json()
-        else:
-            data = request.form.to_dict()
+        data = get_request_data()
         validated = UserUpdateSchema(**data)
         result, status_code = update_user_service(user_id, validated, request)
 
