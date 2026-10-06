@@ -113,8 +113,8 @@ def test_top_10_slowest(timings, capsys):
     slow = [r for r in timings if r[3] > SLOW_MS]
     if slow:
         print(f"\n{len(slow)} routes over {SLOW_MS}ms threshold:")
-        for ep, m, p, ms, st in slow:
-            print(f"  {ms:>7.1f}ms  {ep}  {p}  (status {st})")
+        for ep, _m, _p, ms, _st in slow:
+            print(f"  {ms:>7.1f}ms  {ep}  (status reported in top-10 above)")
     else:
         print(f"\nAll {len(timings)} authenticated GET routes under {SLOW_MS}ms.")
 

@@ -205,12 +205,12 @@ def test_top_10_slowest_prod(prod_timings, capsys):
     print("=" * 70)
     print(f"{'Endpoint':<50} {'ms':>7} {'st':>5}")
     print("-" * 70)
-    for ep, m, p, ms, st in top:
+    for ep, _m, _p, ms, st in top:
         print(f"{ep:<50} {ms:>7.1f} {st:>5}")
     print("=" * 70)
 
     slow = [r for r in prod_timings if r[3] > 1000]
     if slow:
         print(f"\n{len(slow)} routes over 1s on prod:")
-        for ep, m, p, ms, st in slow:
-            print(f"  {ms:>7.1f}ms  {ep}  {p}")
+        for ep, _m, _p, ms, _st in slow:
+            print(f"  {ms:>7.1f}ms  {ep}  (path in top-10 above)")

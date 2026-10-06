@@ -485,7 +485,7 @@ def get_course_subjects_service(course_id: int) -> tuple[list[dict], int]:
         )
 
         subjects = []
-        for course_subject, teacher, course, subject in course_subjects:
+        for course_subject, teacher, _course, subject in course_subjects:
             subjects.append(
                 {
                     "id": course_subject.id,
@@ -622,7 +622,7 @@ def get_student_tasks_service(
 
         # Crear diccionario con todas las materias del curso
         subjects_dict = {}
-        for course_subject, subject in course_subjects:
+        for _course_subject, subject in course_subjects:
             subjects_dict[subject.id] = {
                 "subject_id": subject.id,
                 "subject_name": subject.name,

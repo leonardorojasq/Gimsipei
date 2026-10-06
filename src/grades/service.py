@@ -55,7 +55,7 @@ def get_courses_with_students_service(
         # collect one students[] per course.
         course_order: list[int] = []
         courses_by_id: dict[int, dict] = {}
-        for course, enrollment, student in rows:
+        for course, _enrollment, student in rows:
             if course.id not in courses_by_id:
                 course_order.append(course.id)
                 courses_by_id[course.id] = {

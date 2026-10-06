@@ -547,9 +547,8 @@ def delete_class_service(class_id: int, user_role: str):
             return {"error": "Clase no encontrada"}, 404
 
         # Verify permissions
-        if user_role:
-            if user_role.lower() != UserRole.TEACHER.value:
-                return {"error": "No tienes permisos para eliminar esta clase"}, 403
+        if user_role and user_role.lower() != UserRole.TEACHER.value:
+            return {"error": "No tienes permisos para eliminar esta clase"}, 403
 
         # Save the image path before deleting the record
         cover_image_path = class_to_delete.cover_image
@@ -806,7 +805,7 @@ def get_student_subject_classes_service(
             )
             .all()
         )
-        viewed_class_ids = set([view.class_id for view in viewed_classes_query])
+        viewed_class_ids = {view.class_id for view in viewed_classes_query}
 
         # Calculate statistics
         total_classes = len(classes)
