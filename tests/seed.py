@@ -17,7 +17,6 @@ from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env.test", override=True)
 
-from sqlalchemy import text  # noqa: E402
 from werkzeug.security import generate_password_hash  # noqa: E402
 
 from src.database.database import Base, SessionLocal  # noqa: E402

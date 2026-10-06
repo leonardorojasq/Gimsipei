@@ -4,7 +4,6 @@ CRITICAL: load_dotenv(override=True) MUST run before any import of
 config, src.database, or main — otherwise the engine is built with the
 production .env values.
 """
-import os
 from pathlib import Path
 
 # Load test env FIRST, before any app imports

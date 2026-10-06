@@ -15,7 +15,6 @@ from .service import (
     delete_course_service,
     get_available_course_names,
     get_course_service,
-    get_course_subjects_service,
     get_courses_service,
     get_courses_with_subjects_summary,
     update_course_service,

@@ -9,8 +9,6 @@ from pathlib import Path
 
 import pytest
 from dotenv import load_dotenv
-from flask import Flask
-from flask.testing import FlaskClient
 from sqlalchemy import text
 
 # Load test env before importing app code
