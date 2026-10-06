@@ -109,29 +109,40 @@ def get_all_courses_with_subjects():
     """
     Obtener todos los cursos con sus materias asignadas.
 
+    Single-query implementation: one LEFT OUTER JOIN fetches
+    (course, course_subject, subject) tuples, then we group by
+    course in Python. Was previously N+1: one query for the
+    course list plus one per course for the subjects join.
+
     Returns:
         Tuple con lista de cursos y status code
     """
     db = SessionLocal()
     try:
-        # Obtener todos los cursos
-        courses = db.query(Course).all()
-
-        courses_data = []
-
-        for course in courses:
-            # Obtener las materias asignadas al curso
-            course_subjects = (
-                db.query(CourseSubject, Subject)
-                .join(Subject, CourseSubject.subject_id == Subject.id)
-                .filter(CourseSubject.course_id == course.id)
-                .order_by(Subject.name)
-                .all()
+        rows = (
+            db.query(Course, CourseSubject, Subject)
+            .outerjoin(
+                CourseSubject, CourseSubject.course_id == Course.id
             )
+            .outerjoin(Subject, Subject.id == CourseSubject.subject_id)
+            .all()
+        )
 
-            subjects_list = []
-            for course_subject, subject in course_subjects:
-                subjects_list.append(
+        course_order: list[int] = []
+        courses_by_id: dict[int, dict] = {}
+        for course, course_subject, subject in rows:
+            if course.id not in courses_by_id:
+                course_order.append(course.id)
+                grade_number = get_grade_number_from_course_name(course.name)
+                courses_by_id[course.id] = {
+                    "id": course.id,
+                    "name": course.name,
+                    "academic_year": course.academic_year,
+                    "grade_number": grade_number if grade_number else course.id,
+                    "subjects": [],
+                }
+            if course_subject is not None and subject is not None:
+                courses_by_id[course.id]["subjects"].append(
                     {
                         "id": subject.id,
                         "name": subject.name,
@@ -139,19 +150,10 @@ def get_all_courses_with_subjects():
                     }
                 )
 
-            grade_number = get_grade_number_from_course_name(course.name)
+        for course in courses_by_id.values():
+            course["subjects"].sort(key=lambda s: s["name"])
 
-            courses_data.append(
-                {
-                    "id": course.id,
-                    "name": course.name,
-                    "academic_year": course.academic_year,
-                    "grade_number": grade_number if grade_number else course.id,
-                    "subjects": subjects_list,
-                }
-            )
-
-        # Ordenar por grado
+        courses_data = [courses_by_id[cid] for cid in course_order]
         courses_data.sort(key=lambda c: COURSE_NAME_ORDER.get(c["name"], 999))
 
         return courses_data, 200
