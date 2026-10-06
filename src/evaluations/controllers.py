@@ -139,6 +139,12 @@ def create_evaluation_controller(request: Request):
     try:
         current_user_id = get_jwt_identity()
 
+        if request.method == "GET":
+            # The create form is rendered as a modal inside the
+            # evaluations view; GET on /evaluations/create has no
+            # standalone page to render. Redirect to the view.
+            return redirect(url_for("evaluations.evaluations_view"))
+
         if request.method == "POST":
             # Obtener datos básicos del formulario
             base_data = {
