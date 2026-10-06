@@ -1,59 +1,107 @@
 # Gimsipei
- Construcción de un sistema de gestion de pruebas enfocado a la educación.
+
+Construcción de un sistema de gestion de pruebas enfocado a la educación.
 
 ## Herramientas utilizadas
-* Python 3.11.2
-* Flask
 
-### Pasos para inicializar el proyecto ###
-* Clonar el repositorio:
-    ```bash
-    git clone git@github.com:lrojasq/Gimsipei.git
-    ```
-* Ingresar al directorio del proyecto:
-    ```bash
-    cd Gimsipei
-    ```
-* Crear un entorno virtual:
-    ```bash
-    # Windows
-    py -m venv env
-  
-    # Linux
-    python3 -m venv env
-    ```
-* Ejecutar el entorno virtual:
-    ```bash
-    # Windows
-    env\Scripts\activate
+- Python 3.11+
+- Flask
+- [uv](https://docs.astral.sh/uv/) (gestor de paquetes y entornos)
+- [ruff](https://docs.astral.sh/ruff/) (linter + formateador)
 
-    # Linux
-    source env/bin/activate
-    ```
-* Instalar los paquetes del proyecto:
-    ```bash
-    pip install -r requirements.txt
-    ```
-* Actualizar pip:
-    ```bash
-    # Windows
-    python.exe -m pip install --upgrade pip
+## Pasos para inicializar el proyecto
 
-    # Linux
-    python3 -m pip install --upgrade pip
-    ```
-* Ejecutar el proyecto:
-    ```bash
-    # Windows
-    py application.py
+### 1. Instalar uv
 
-    # Linux
-    python3 application.py
-    ```
-* Ingresar a la URL:
-    ```bash
-     # local 
-    http://localhost:5000/
-    ```
-# git fetch 
-    actualiza
+```bash
+# Linux / macOS
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# o con pip / pipx
+pip install uv
+```
+
+### 2. Clonar el repositorio
+
+```bash
+git clone git@github.com:lrojasq/Gimsipei.git
+cd Gimsipei
+```
+
+### 3. Sincronizar dependencias
+
+`uv` crea `.venv/` automáticamente e instala todo lo declarado en `pyproject.toml` + `uv.lock`:
+
+```bash
+uv sync
+```
+
+### 4. Activar el entorno virtual
+
+```bash
+# Linux / macOS
+source .venv/bin/activate
+
+# Windows
+.venv\Scripts\activate
+```
+
+O ejecutá los comandos directamente con `uv run ...` sin necesidad de activar.
+
+### 5. Configurar variables de entorno
+
+Copiá `.env` (si no existe) y completá los valores de tu base de datos.
+
+### 6. Ejecutar el proyecto
+
+```bash
+# Con el venv activado
+python main.py
+
+# O sin activar
+uv run python main.py
+```
+
+### 7. Abrir en el navegador
+
+```
+http://localhost:5010/
+```
+
+## Linting y formateo
+
+```bash
+# Verificar estilo y errores de lint
+uv run ruff check .
+
+# Aplicar fixes automáticos (imports, unused, etc.)
+uv run ruff check . --fix
+
+# Formatear el código
+uv run ruff format .
+
+# Ver qué cambiaría sin aplicar
+uv run ruff format . --check
+uv run ruff check . --diff
+```
+
+## Pre-commit (opcional)
+
+Para que `ruff` corra automáticamente antes de cada commit:
+
+```bash
+uv run pre-commit install
+```
+
+A partir de ese momento, `git commit` ejecutará `ruff check --fix` y `ruff format` sobre los archivos modificados. Si algo falla, el commit se rechaza.
+
+## Versión de Python
+
+`pyproject.toml` declara `requires-python = ">=3.11"`. Si tu sistema tiene una versión distinta, uv puede administrar la versión correcta automáticamente:
+
+```bash
+uv python install 3.11
+```
