@@ -192,6 +192,11 @@ def get_available_subject_names() -> List[str]:
         "Geografía",
         "Filosofía",
         "Economía",
+        "Dimensión cognitiva",
+        "Dimensión comunicativa",
+        "Dimensión artística",
+        "Dimensión corporal",
+        "Dimensión socio-emocional",
     ]
     return subject_names
 
