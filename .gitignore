@@ -5,13 +5,8 @@ venv
 /venv
 .env
 
-# config
-*.json
-*.yaml
-*.yml
-*.toml
-*.ini
-*.env
+# uv
+.venv/
 
 # __pycache__
 __pycache__/
