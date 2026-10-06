@@ -1,7 +1,6 @@
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 from flask import Request
 from flask_jwt_extended import get_jwt_identity
@@ -13,10 +12,10 @@ from src.models.class_model import ClassModel
 from src.models.course import Course
 from src.models.course_student import CourseStudent
 from src.models.course_subject import CourseSubject
-from src.models.subject import Subject
-from src.models.user import User, UserRole
 from src.models.evaluation import Evaluation
 from src.models.evaluation_submission import EvaluationSubmission
+from src.models.subject import Subject
+from src.models.user import User, UserRole
 
 from .validation import (
     CourseCreateSchema,
@@ -27,7 +26,7 @@ from .validation import (
 )
 
 
-def get_available_course_names() -> List[str]:
+def get_available_course_names() -> list[str]:
     """Genera lista de nombres de cursos disponibles"""
 
     course_names = ["Sexto", "Séptimo", "Octavo", "Noveno", "Décimo", "Undécimo"]
@@ -55,14 +54,14 @@ COURSE_NAME_TO_GRADE = {
 }
 
 
-def get_grade_number_from_course_name(course_name: str) -> Optional[int]:
+def get_grade_number_from_course_name(course_name: str) -> int | None:
     """Extrae el número del grado del nombre del curso"""
     return COURSE_NAME_TO_GRADE.get(course_name)
 
 
 def get_courses_service(
-    academic_year: Optional[str] = None,
-) -> Tuple[List[CourseResponseSchema], int]:
+    academic_year: str | None = None,
+) -> tuple[list[CourseResponseSchema], int]:
     """Obtener lista de cursos"""
     db = SessionLocal()
     try:
@@ -92,7 +91,7 @@ def get_courses_service(
         db.close()
 
 
-def get_all_courses_for_dashboard() -> List[dict]:
+def get_all_courses_for_dashboard() -> list[dict]:
     """Obtener todos los cursos con información para el dashboard"""
     db = SessionLocal()
     try:
@@ -119,7 +118,7 @@ def get_all_courses_for_dashboard() -> List[dict]:
 
 def get_course_service(
     course_id: int, request: Request
-) -> Tuple[Optional[CourseResponseSchema], int]:
+) -> tuple[CourseResponseSchema | None, int]:
     """Obtener un curso específico"""
     db = SessionLocal()
     try:
@@ -141,7 +140,7 @@ def get_course_service(
 
 def create_course_service(
     data: CourseCreateSchema, request: Request
-) -> Tuple[Optional[CourseResponseSchema], int]:
+) -> tuple[CourseResponseSchema | None, int]:
     """Crear un nuevo curso"""
     db = SessionLocal()
     try:
@@ -187,7 +186,7 @@ def create_course_service(
 
 def update_course_service(
     course_id: int, data: CourseUpdateSchema, request: Request
-) -> Tuple[Optional[CourseResponseSchema], int]:
+) -> tuple[CourseResponseSchema | None, int]:
     """Actualizar un curso existente"""
     db = SessionLocal()
     try:
@@ -234,7 +233,7 @@ def update_course_service(
 
 def delete_course_service(
     course_id: int, request: Request
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Eliminar un curso"""
     db = SessionLocal()
     try:
@@ -254,7 +253,7 @@ def delete_course_service(
         db.close()
 
 
-def get_course_students_service(course_id: int) -> Tuple[List[dict], int]:
+def get_course_students_service(course_id: int) -> tuple[list[dict], int]:
     """Obtener estudiantes de un curso"""
     db = SessionLocal()
     try:
@@ -284,7 +283,7 @@ def get_course_students_service(course_id: int) -> Tuple[List[dict], int]:
 
 def get_course_students_for_view_service(
     course_id: int,
-) -> Tuple[Optional[dict], List[dict], int]:
+) -> tuple[dict | None, list[dict], int]:
     """Obtener curso y estudiantes para la vista de estudiantes"""
     db = SessionLocal()
     try:
@@ -333,7 +332,7 @@ def get_course_students_for_view_service(
 
 def add_student_to_course_service(
     course_id: int, data: CourseStudentSchema, request: Request
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Agregar estudiante a un curso"""
     db = SessionLocal()
     try:
@@ -380,7 +379,7 @@ def add_student_to_course_service(
 
 def remove_student_from_course_service(
     course_id: int, student_id: int, request: Request
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Remover estudiante de un curso"""
     db = SessionLocal()
     try:
@@ -408,7 +407,7 @@ def remove_student_from_course_service(
         db.close()
 
 
-def get_course_subjects_service(course_id: int) -> Tuple[List[dict], int]:
+def get_course_subjects_service(course_id: int) -> tuple[list[dict], int]:
     """Obtener materias de un curso"""
     db = SessionLocal()
     try:
@@ -441,7 +440,7 @@ def get_course_subjects_service(course_id: int) -> Tuple[List[dict], int]:
 
 def add_subject_to_course_service(
     course_id: int, data: CourseSubjectSchema, request: Request
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Agregar materia a un curso"""
     db = SessionLocal()
     try:
@@ -493,7 +492,7 @@ def add_subject_to_course_service(
 
 def remove_subject_from_course_service(
     course_id: int, subject_id: int, teacher_id: int, request: Request
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Remover materia de un curso"""
     db = SessionLocal()
     try:
@@ -523,7 +522,7 @@ def remove_subject_from_course_service(
 
 def get_student_tasks_service(
     course_id: int, student_id: int
-) -> Tuple[Optional[dict], List[dict], int]:
+) -> tuple[dict | None, list[dict], int]:
     """Obtener tareas/asignaciones de un estudiante en un curso, agrupadas por asignatura"""
     db = SessionLocal()
     try:
@@ -633,7 +632,7 @@ def get_student_tasks_service(
 
 def download_assignment_submission_service(
     course_id: int, student_id: int, assignment_id: int
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Obtener el archivo de una entrega de asignación"""
     db = SessionLocal()
     try:
@@ -669,7 +668,7 @@ def download_assignment_submission_service(
 
 def delete_assignment_submission_service(
     course_id: int, student_id: int, assignment_id: int
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Eliminar una entrega de asignación (archivo y registro)"""
     db = SessionLocal()
     try:
@@ -720,7 +719,7 @@ def delete_assignment_submission_service(
 
 def get_student_evaluations_service(
     course_id: int, student_id: int
-) -> Tuple[Optional[dict], List[dict], int]:
+) -> tuple[dict | None, list[dict], int]:
     """Obtener evaluaciones de un estudiante en un curso, agrupadas por asignatura"""
     db = SessionLocal()
     try:

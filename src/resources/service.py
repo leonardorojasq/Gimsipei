@@ -1,21 +1,20 @@
-from typing import List, Optional, Tuple
-from datetime import datetime
 import os
+from datetime import datetime
 
 from flask import Request
 from werkzeug.utils import secure_filename
 
 from src.database.database import SessionLocal
-from src.models.resource import Resource, ResourceType
 from src.models.class_model import ClassModel
-from src.models.subject import Subject
-from src.models.course_subject import CourseSubject
-from src.models.course_student import CourseStudent
 from src.models.course import Course
+from src.models.course_student import CourseStudent
+from src.models.course_subject import CourseSubject
+from src.models.resource import Resource, ResourceType
+from src.models.subject import Subject
 from src.models.user import User
 
 
-def get_resources_by_student_service(student_id: int) -> Tuple[Optional[dict], int]:
+def get_resources_by_student_service(student_id: int) -> tuple[dict | None, int]:
     """Obtener el curso y materias del estudiante para ver recursos"""
     db = SessionLocal()
     try:
@@ -67,7 +66,7 @@ def get_resources_by_student_service(student_id: int) -> Tuple[Optional[dict], i
 
 def get_resources_by_student_subject_service(
     user_id: int, course_id: int, subject_id: int
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Obtener recursos de una materia específica para un estudiante o profesor"""
     db = SessionLocal()
     try:
@@ -147,7 +146,7 @@ def get_resources_by_student_subject_service(
         db.close()
 
 
-def get_resources_by_class_service(class_id: int) -> Tuple[List[dict], int]:
+def get_resources_by_class_service(class_id: int) -> tuple[list[dict], int]:
     """Obtener recursos de una clase específica"""
     db = SessionLocal()
     try:
@@ -177,7 +176,7 @@ def get_resources_by_class_service(class_id: int) -> Tuple[List[dict], int]:
         db.close()
 
 
-def get_resources_by_teacher_service(teacher_id: int) -> Tuple[Optional[dict], int]:
+def get_resources_by_teacher_service(teacher_id: int) -> tuple[dict | None, int]:
     """Obtener todos los recursos organizados por materia para un profesor"""
     db = SessionLocal()
     try:
@@ -259,7 +258,7 @@ def get_resources_by_teacher_service(teacher_id: int) -> Tuple[Optional[dict], i
 
 def get_resource_service(
     resource_id: int, request: Request
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Obtener un recurso específico"""
     db = SessionLocal()
     try:
@@ -285,7 +284,7 @@ def get_resource_service(
 
 def get_resource_file_path_service(
     resource_id: int,
-) -> Tuple[Optional[str], Optional[str], int]:
+) -> tuple[str | None, str | None, int]:
     """
     Obtener la ruta del archivo de un recurso para descarga
     """
@@ -322,7 +321,7 @@ def create_resource_service(
     cover_file=None,
     resource_file=None,
     created_by_user_id=None,
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Crear un nuevo recurso"""
     db = SessionLocal()
     try:
@@ -435,7 +434,7 @@ def update_resource_service(
     data: dict,
     cover_file=None,
     resource_file=None,
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Actualizar un recurso existente"""
     db = SessionLocal()
     try:
@@ -507,7 +506,7 @@ def update_resource_service(
 
 def delete_resource_service(
     resource_id: int, request: Request
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Eliminar un recurso"""
     db = SessionLocal()
     try:

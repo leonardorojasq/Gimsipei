@@ -1,17 +1,18 @@
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
-from src.utils.decorator_role_required import role_required
+
 from src.models.user import UserRole
+from src.utils.decorator_role_required import role_required
 
 from .controllers import (
     books_view_controller,
-    read_book_controller,
     create_book_controller,
-    update_book_controller,
     delete_book_controller,
     download_book_controller,
-    get_books_api_controller,
     get_book_api_controller,
+    get_books_api_controller,
+    read_book_controller,
+    update_book_controller,
 )
 
 book_bp = Blueprint("books", __name__, url_prefix="/books")

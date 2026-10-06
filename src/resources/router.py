@@ -1,20 +1,21 @@
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
-from src.utils.decorator_role_required import role_required
+
 from src.models.user import UserRole
+from src.utils.decorator_role_required import role_required
 
 from .controllers import (
-    resources_view_controller,
-    resources_view_subject_controller,
+    create_resource_api_controller,
     create_resource_controller,
+    delete_resource_api_controller,
     delete_resource_controller,
     download_resource_controller,
-    student_resources_view_controller,
-    get_resources_by_class_api_controller,
     get_resource_api_controller,
-    create_resource_api_controller,
+    get_resources_by_class_api_controller,
+    resources_view_controller,
+    resources_view_subject_controller,
+    student_resources_view_controller,
     update_resource_api_controller,
-    delete_resource_api_controller,
 )
 
 resources_bp = Blueprint("resources", __name__, url_prefix="/resources")

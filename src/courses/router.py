@@ -1,25 +1,26 @@
 from flask import Blueprint, request
+
+from .controllers import (
+    add_subject_to_course_api_controller,
+    create_course_api_controller,
+    delete_assignment_submission_controller,
+    delete_course_api_controller,
+    download_assignment_submission_controller,
+    get_course_api_controller,
+    get_course_subjects_api_controller,
+    get_courses_api_controller,
+    remove_subject_from_course_api_controller,
+    update_course_api_controller,
+)
 from .courses_controllers import (
+    course_detail_controller,
     courses_management_controller,
     create_course_controller,
-    edit_course_controller,
     delete_course_controller,
-    course_detail_controller,
+    edit_course_controller,
     remove_student_from_course_controller,
     remove_subject_from_course_controller,
     # teacher_classes_controller,
-)
-from .controllers import (
-    get_courses_api_controller,
-    get_course_api_controller,
-    create_course_api_controller,
-    update_course_api_controller,
-    delete_course_api_controller,
-    get_course_subjects_api_controller,
-    add_subject_to_course_api_controller,
-    remove_subject_from_course_api_controller,
-    download_assignment_submission_controller,
-    delete_assignment_submission_controller,
 )
 
 courses_bp = Blueprint("courses", __name__, url_prefix="/courses")

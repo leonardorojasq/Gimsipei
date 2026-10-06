@@ -1,24 +1,25 @@
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
-from src.utils.decorator_role_required import role_required
+
 from src.models.user import UserRole
+from src.utils.decorator_role_required import role_required
 
 from .controllers import (
-    evaluations_view_controller,
-    subject_evaluations_view_controller,
     create_evaluation_controller,
-    update_evaluation_controller,
     delete_evaluation_controller,
+    delete_evaluation_submission_controller,
+    evaluations_view_controller,
+    get_evaluation_api_controller,
     get_evaluation_json_controller,
     get_evaluations_api_controller,
-    get_evaluation_api_controller,
-    student_evaluations_view_controller,
-    student_take_evaluation_controller,
-    student_submit_evaluation_controller,
     reset_evaluation_submission_controller,
-    delete_evaluation_submission_controller,
-    view_submission_answers_controller,
+    student_evaluations_view_controller,
+    student_submit_evaluation_controller,
+    student_take_evaluation_controller,
+    subject_evaluations_view_controller,
+    update_evaluation_controller,
     update_submission_score_controller,
+    view_submission_answers_controller,
 )
 
 evaluations_bp = Blueprint("evaluations", __name__, url_prefix="/evaluations")

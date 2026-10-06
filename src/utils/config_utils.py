@@ -1,12 +1,11 @@
 # import asyncio
-from os import getenv, remove, path, makedirs, listdir
 from datetime import datetime
-from dotenv import load_dotenv
-from azure.storage.blob import BlobServiceClient
-
-from werkzeug.utils import secure_filename
+from os import getenv, makedirs, path
 
 from app.utils.responses import Response
+from azure.storage.blob import BlobServiceClient
+from dotenv import load_dotenv
+from werkzeug.utils import secure_filename
 
 # load environment variables
 load_dotenv('../../.env')
@@ -24,7 +23,7 @@ class HelperSie:
 
             blob_service_client = BlobServiceClient(account_url=account_url, credential=shared_access_key)
             return Response.tuple_response(blob_service_client, 200)
-        except Exception as e:
+        except Exception:
             return Response.tuple_response("Error al intentar obtener el cliente del blob account", 400)
 
     def get_content_type(self, file_name) -> str:
@@ -81,7 +80,7 @@ class HelperSie:
                 return Response.tuple_response("Precaución: El archivo no se subió correctamente", 200)
 
             return Response.tuple_response({"url": blob_client.url, "nombre": blob_client.blob_name}, 200)
-        except Exception as e:
+        except Exception:
             return Response.tuple_response("Error al intentar subir el archivo a Azure Blob Storage", 400)
 
 
@@ -94,7 +93,7 @@ class HelperSie:
 
             # Get the BlobClient for the file you want to delete
             blob_client = blob_service_client[0].get_blob_client(container_name, name_cheild)
-            
+
             # Verify if the blob exists before deleting it
             if not blob_client.exists():
                 return Response.tuple_response("The resource does not exist in Azure Blob Storage", 200)
@@ -102,7 +101,7 @@ class HelperSie:
             blob_client.delete_blob()
 
             return Response.tuple_response("Resource deleted successfully", 200)
-        except Exception as e:
+        except Exception:
             return Response.tuple_response("Error al intentar eliminar el recurso de Azure Blob Storage", 400)
 
 
@@ -121,7 +120,7 @@ class HelperSie:
                 folder.write(file.read())
 
             return Response.tuple_response("File saved successfully", 200)
-        except Exception as e:
+        except Exception:
             return Response.tuple_response("Error al intentar guardar el archivo", 400)
 
 
@@ -140,11 +139,11 @@ class HelperSie:
             if 'recurso' not in request.files:
                 return Response.tuple_response("No se envió el archivo", 200)
             file = request.files['recurso']
-            
+
             # Verify if the file is empty
             if file.filename == '':
                 return Response.tuple_response("Se envió un archivo vacío", 200)
-            
+
             # Verify if the file has a valid extension
             if not self.extension_file(file.filename):
                 return Response.tuple_response("The file does not have a valid extension", 200)
@@ -161,14 +160,13 @@ class HelperSie:
             file_name = secure_filename(file.filename)
             if len(file_name) < 4 or len(file_name) > 40:
                 return Response.tuple_response("The file name must have between 4 and 40 characters", 200)
-            
+
             # Verify if the file has a content type
             content_type = file.content_type
             if not content_type:
                 file.content_type = 'application/octet-stream'
-                        
+
             return Response.tuple_response("Correct validation", 201)
-        except Exception as e:
+        except Exception:
             return Response.tuple_response("Error al intentar subir el archivo", 400)
 
-    

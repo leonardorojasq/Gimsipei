@@ -2,22 +2,22 @@ from flask import Request, Response, flash, redirect, render_template, url_for
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from pydantic import ValidationError
 
-from src.models.user import UserRole
-from src.utils.decorator_role_required import role_required
 from src.courses.service import (
+    add_student_to_course_service,
     get_course_students_for_view_service,
     get_courses_service,
-    add_student_to_course_service,
-    get_student_tasks_service,
     get_student_evaluations_service,
+    get_student_tasks_service,
 )
 from src.courses.validation import CourseStudentSchema
+from src.models.user import UserRole
+from src.utils.decorator_role_required import role_required
 
 from .service import (
-    get_user_service,
     create_user_service,
-    update_user_service,
     delete_user_service,
+    get_user_service,
+    update_user_service,
 )
 from .validation import StudentCreateSchema, UserUpdateSchema
 

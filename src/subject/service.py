@@ -1,4 +1,3 @@
-from typing import List, Optional, Tuple
 
 from flask import Request
 
@@ -16,8 +15,8 @@ from .validation import (
 
 
 def get_subjects_service(
-    teacher_id: Optional[int] = None,
-) -> Tuple[List[SubjectResponseSchema], int]:
+    teacher_id: int | None = None,
+) -> tuple[list[SubjectResponseSchema], int]:
     """Obtener lista de materias con filtros opcionales"""
     db = SessionLocal()
     try:
@@ -48,7 +47,7 @@ def get_subjects_service(
 
 def get_subject_service(
     subject_id: int, request: Request
-) -> Tuple[Optional[SubjectResponseSchema], int]:
+) -> tuple[SubjectResponseSchema | None, int]:
     """Obtener una materia específica"""
     db = SessionLocal()
     try:
@@ -68,7 +67,7 @@ def get_subject_service(
 
 def create_subject_service(
     data: SubjectCreateSchema, request: Request
-) -> Tuple[Optional[SubjectResponseSchema], int]:
+) -> tuple[SubjectResponseSchema | None, int]:
     """Crear una nueva materia o retornar la existente si ya existe"""
     db = SessionLocal()
     try:
@@ -106,7 +105,7 @@ def create_subject_service(
 
 def update_subject_service(
     subject_id: int, data: SubjectUpdateSchema, request: Request
-) -> Tuple[Optional[SubjectResponseSchema], int]:
+) -> tuple[SubjectResponseSchema | None, int]:
     """Actualizar una materia existente"""
     db = SessionLocal()
     try:
@@ -144,7 +143,7 @@ def update_subject_service(
 
 def delete_subject_service(
     subject_id: int, request: Request
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Eliminar una materia"""
     db = SessionLocal()
     try:
@@ -171,7 +170,7 @@ def delete_subject_service(
         db.close()
 
 
-def get_available_subject_names() -> List[str]:
+def get_available_subject_names() -> list[str]:
     """Genera lista de nombres de materias disponibles para un colegio"""
     subject_names = [
         "Matemáticas",
@@ -201,7 +200,7 @@ def get_available_subject_names() -> List[str]:
     return subject_names
 
 
-def get_teachers_for_form_service() -> List[dict]:
+def get_teachers_for_form_service() -> list[dict]:
     """Obtener lista de profesores para formularios"""
     db = SessionLocal()
     try:
@@ -219,7 +218,7 @@ def get_teachers_for_form_service() -> List[dict]:
         db.close()
 
 
-def get_course_by_id_service(course_id: int) -> Optional[Course]:
+def get_course_by_id_service(course_id: int) -> Course | None:
     """Obtener un curso por su ID"""
     db = SessionLocal()
     try:
@@ -230,7 +229,7 @@ def get_course_by_id_service(course_id: int) -> Optional[Course]:
 
 def get_subject_with_teachers_service(
     subject_id: int, request: Request
-) -> Tuple[Optional[SubjectResponseSchema], List[dict], int]:
+) -> tuple[SubjectResponseSchema | None, list[dict], int]:
     """Obtener una materia con la lista de profesores para formularios"""
     subject, status_code = get_subject_service(subject_id, request)
     if status_code != 200:

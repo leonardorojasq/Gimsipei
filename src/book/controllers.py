@@ -1,28 +1,28 @@
+import os
+
 from flask import (
     Request,
     Response,
-    render_template,
-    redirect,
-    url_for,
     flash,
+    redirect,
+    render_template,
     send_file,
+    url_for,
 )
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from typing import Tuple, Optional
-import os
+from flask_jwt_extended import get_jwt_identity, jwt_required
+
+from src.database.database import SessionLocal
+from src.models.user import User, UserRole
+from src.utils.api_response import ApiResponse
+from src.utils.decorator_role_required import role_required
 
 from .service import (
-    get_books_service,
-    get_book_service,
     create_book_service,
-    update_book_service,
     delete_book_service,
+    get_book_service,
+    get_books_service,
+    update_book_service,
 )
-from src.utils.api_response import ApiResponse
-from src.models.user import UserRole
-from src.utils.decorator_role_required import role_required
-from src.database.database import SessionLocal
-from src.models.user import User
 
 
 # ========== HTML View Controllers ==========
@@ -233,7 +233,7 @@ def download_book_controller(book_id: int, _: Request):
 # ========== API Controllers ==========
 @jwt_required()
 @role_required([UserRole.TEACHER, UserRole.ADMIN])
-def get_books_api_controller(request: Request) -> Response | Tuple[list, int]:
+def get_books_api_controller(request: Request) -> Response | tuple[list, int]:
     """API para obtener todos los libros"""
     try:
         books, status_code = get_books_service()
@@ -253,7 +253,7 @@ def get_books_api_controller(request: Request) -> Response | Tuple[list, int]:
 @jwt_required()
 def get_book_api_controller(
     book_id: int, request: Request
-) -> Response | Tuple[Optional[dict], int]:
+) -> Response | tuple[dict | None, int]:
     """API para obtener un libro específico"""
     try:
         result, status_code = get_book_service(book_id)

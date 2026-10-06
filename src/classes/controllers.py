@@ -1,11 +1,10 @@
-from flask import request, jsonify, render_template, flash, redirect, url_for
-from flask_jwt_extended import get_jwt_identity, get_jwt
+from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask_jwt_extended import get_jwt, get_jwt_identity
 from pydantic import ValidationError
 
 from src.classes import service, validation
+from src.classes.service import create_class_service, create_resource_service
 from src.users.service import get_user_service
-from src.classes.service import create_class_service
-from src.classes.service import create_resource_service
 
 
 # Subject Controllers

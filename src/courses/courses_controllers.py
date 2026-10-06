@@ -1,25 +1,25 @@
 from flask import Request, Response, flash, redirect, render_template, url_for
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from pydantic import ValidationError
 
 from src.models.user import UserRole
+from src.subject.service import (
+    get_available_subject_names,
+    get_teachers_for_form_service,
+)
+from src.users.service import get_user_service
 from src.utils.decorator_role_required import role_required
 
 from .service import (
     create_course_service,
     delete_course_service,
+    get_available_course_names,
     get_course_service,
+    get_course_subjects_service,
     get_courses_service,
     update_course_service,
-    get_available_course_names,
 )
 from .validation import CourseCreateSchema, CourseUpdateSchema
-from .service import get_course_subjects_service
-from src.subject.service import (
-    get_teachers_for_form_service,
-    get_available_subject_names,
-)
-from src.users.service import get_user_service
 
 
 # View to manage courses

@@ -1,15 +1,15 @@
-from typing import Tuple, Optional, List, Dict
-from datetime import datetime
 import os
+from datetime import datetime
+
 from werkzeug.utils import secure_filename
 
+from ..database.database import SessionLocal
+from ..models.course import Course
+from ..models.course_subject import CourseSubject
 from ..models.evaluation import Evaluation
 from ..models.evaluation_question import EvaluationQuestion, QuestionType
 from ..models.evaluation_question_option import EvaluationQuestionOption
-from ..models.course import Course
 from ..models.subject import Subject
-from ..models.course_subject import CourseSubject
-from ..database.database import SessionLocal
 
 
 def evaluation_to_dict(evaluation):
@@ -33,10 +33,10 @@ def evaluation_to_dict(evaluation):
 
 
 def get_evaluations_service(
-    course_id: Optional[int] = None,
-    subject_id: Optional[int] = None,
-    period: Optional[int] = None,
-) -> Tuple[List[dict], int]:
+    course_id: int | None = None,
+    subject_id: int | None = None,
+    period: int | None = None,
+) -> tuple[list[dict], int]:
     """Obtener todas las evaluaciones, opcionalmente filtradas"""
     db = SessionLocal()
     try:
@@ -62,7 +62,7 @@ def get_evaluations_service(
         db.close()
 
 
-def get_evaluation_service(evaluation_id: int) -> Tuple[Optional[dict], int]:
+def get_evaluation_service(evaluation_id: int) -> tuple[dict | None, int]:
     """Obtener una evaluación específica"""
     db = SessionLocal()
     try:
@@ -81,7 +81,7 @@ def get_evaluation_service(evaluation_id: int) -> Tuple[Optional[dict], int]:
 
 def get_evaluations_by_period_service(
     course_id: int, subject_id: int
-) -> Tuple[Dict[int, List[dict]], int]:
+) -> tuple[dict[int, list[dict]], int]:
     """Obtener evaluaciones agrupadas por periodo"""
     db = SessionLocal()
     try:
@@ -111,7 +111,7 @@ def get_evaluations_by_period_service(
         db.close()
 
 
-def _save_cover_image(cover_image) -> Optional[str]:
+def _save_cover_image(cover_image) -> str | None:
     """Guardar imagen de portada y devolver ruta relativa para servirla."""
     if not cover_image or not getattr(cover_image, "filename", None):
         return None
@@ -131,8 +131,8 @@ def create_evaluation_service(
     data: dict,
     cover_image=None,
     created_by_user_id=None,
-    questions: Optional[list[dict]] = None,
-) -> Tuple[Optional[dict], int]:
+    questions: list[dict] | None = None,
+) -> tuple[dict | None, int]:
     """
     Crear una nueva evaluación.
 
@@ -140,7 +140,7 @@ def create_evaluation_service(
     `evaluation_questions` y `evaluation_question_options`.
     """
     db = SessionLocal()
-    cover_path: Optional[str] = None
+    cover_path: str | None = None
 
     try:
         # Procesar imagen de portada si existe
@@ -215,7 +215,7 @@ def create_evaluation_service(
 
 def update_evaluation_service(
     evaluation_id: int, data: dict, cover_image=None
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Actualizar una evaluación"""
     db = SessionLocal()
     try:
@@ -272,7 +272,7 @@ def update_evaluation_service(
         db.close()
 
 
-def delete_evaluation_service(evaluation_id: int) -> Tuple[Optional[dict], int]:
+def delete_evaluation_service(evaluation_id: int) -> tuple[dict | None, int]:
     """Eliminar una evaluación"""
     db = SessionLocal()
     try:

@@ -1,6 +1,5 @@
 import os
 from datetime import datetime
-from typing import Optional, Tuple
 
 from werkzeug.utils import secure_filename
 
@@ -24,7 +23,7 @@ def book_to_dict(book):
 
 def create_book_service(
     data: dict, file=None, cover_image=None, created_by_user_id=None
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Crear un nuevo libro"""
     db = SessionLocal()
     file_path = None
@@ -94,7 +93,7 @@ def create_book_service(
         db.close()
 
 
-def get_books_service(target_audience=None) -> Tuple[Optional[list], int]:
+def get_books_service(target_audience=None) -> tuple[list | None, int]:
     """Obtener todos los libros, opcionalmente filtrados por audiencia"""
     db = SessionLocal()
     try:
@@ -107,7 +106,7 @@ def get_books_service(target_audience=None) -> Tuple[Optional[list], int]:
         db.close()
 
 
-def get_book_service(book_id: int) -> Tuple[Optional[dict], int]:
+def get_book_service(book_id: int) -> tuple[dict | None, int]:
     """Obtener un libro específico"""
     db = SessionLocal()
     try:
@@ -121,7 +120,7 @@ def get_book_service(book_id: int) -> Tuple[Optional[dict], int]:
 
 def update_book_service(
     book_id: int, data: dict, file=None, cover_image=None
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Actualizar un libro"""
     db = SessionLocal()
     try:
@@ -197,7 +196,7 @@ def update_book_service(
         db.close()
 
 
-def delete_book_service(book_id: int) -> Tuple[Optional[dict], int]:
+def delete_book_service(book_id: int) -> tuple[dict | None, int]:
     """Eliminar un libro"""
     db = SessionLocal()
     try:

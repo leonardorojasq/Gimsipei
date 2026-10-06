@@ -1,11 +1,12 @@
 from functools import wraps
+
 from flask import request
 
 
 def normalize_role_field(fn):
     """
     Normalize the role field if it exists in the request and is a string.
-    """	
+    """
     @wraps(fn)
     def wrapper(*args, **kwargs):
         # Detect if the request is JSON or form-data

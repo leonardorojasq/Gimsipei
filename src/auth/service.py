@@ -1,28 +1,32 @@
+import os
+from functools import wraps
+
 from flask import (
-    redirect,
-    url_for,
+    Request,
+    Response,
     flash,
     make_response,
+    redirect,
     render_template,
+    url_for,
 )
-from src.models.user import User, UserRole
-from src.database.database import SessionLocal
 from flask_jwt_extended import (
     create_access_token,
     get_jwt_identity,
+    jwt_required,
     set_access_cookies,
     unset_jwt_cookies,
-    jwt_required,
 )
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask import Request, Response
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from src.database.database import SessionLocal
+from src.models.user import User, UserRole
+
 from .validation import (
-    LoginSchema,
     CreateFirstAdminSchema,
     ForgotPasswordSchema,
+    LoginSchema,
 )
-import os
-from functools import wraps
 
 
 def login_required(f):

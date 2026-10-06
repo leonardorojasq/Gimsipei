@@ -1,18 +1,8 @@
-from datetime import datetime, timezone
-from werkzeug.utils import secure_filename
 import os
+from datetime import UTC, datetime
 
-from src.models.resource import Resource
-from src.database.database import SessionLocal
-from src.models.subject import Subject
-from src.models.user import User, UserRole
-from src.models.class_model import ClassModel
-from src.models.course import Course
-from src.models.class_view import ClassView
-from src.models.course_student import CourseStudent
-from src.models.class_content import ClassContent
-from src.models.assignment import Assignment
-from src.models.assignment_submission import AssignmentSubmission
+from werkzeug.utils import secure_filename
+
 from src.classes.validation import (
     SubjectCreate,
     SubjectUpdate,
@@ -21,7 +11,18 @@ from src.courses.service import (
     COURSE_NAME_ORDER,
     get_grade_number_from_course_name,
 )
+from src.database.database import SessionLocal
+from src.models.assignment import Assignment
+from src.models.assignment_submission import AssignmentSubmission
+from src.models.class_content import ClassContent
+from src.models.class_model import ClassModel
+from src.models.class_view import ClassView
+from src.models.course import Course
+from src.models.course_student import CourseStudent
 from src.models.course_subject import CourseSubject
+from src.models.resource import Resource
+from src.models.subject import Subject
+from src.models.user import User, UserRole
 
 
 # Subject Services
@@ -1273,7 +1274,7 @@ def update_assignment_service(assignment_id: int, data: dict):
         if data.get("max_score"):
             assignment.max_score = data["max_score"]
 
-        assignment.updated_at = datetime.now(timezone.utc)
+        assignment.updated_at = datetime.now(UTC)
 
         db.commit()
         db.refresh(assignment)

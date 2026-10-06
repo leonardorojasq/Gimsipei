@@ -1,13 +1,14 @@
-from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
 from functools import wraps
-from src.models.user import User
+
+from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
+
 from src.database.database import SessionLocal
+from src.models.user import User
 from src.utils.api_response import ApiResponse
-from typing import Union, List
 
 
 # Decorator to validate roles
-def role_required(roles_param: Union[object, List[object]]):
+def role_required(roles_param: object | list[object]):
     """
     Decorator to validate roles. It uses the verify_jwt_in_request function to validate the JWT token.
     It uses the get_jwt_identity function to get the user id.

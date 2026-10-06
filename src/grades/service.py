@@ -1,4 +1,3 @@
-from typing import List, Optional, Tuple
 
 from ..database.database import SessionLocal
 from ..models.assignment import Assignment
@@ -31,7 +30,7 @@ def grade_to_dict(grade: Grade) -> dict:
 
 def get_courses_with_students_service(
     teacher_id: int,
-) -> Tuple[Optional[List[dict]], int]:
+) -> tuple[list[dict] | None, int]:
     """
     Obtener todos los cursos del sistema junto con los estudiantes de cada curso.
     Para profesores, muestra todos los cursos existentes.
@@ -86,8 +85,8 @@ def get_courses_with_students_service(
 
 
 def get_student_grades_service(
-    student_id: int, course_id: int, period: Optional[int] = None
-) -> Tuple[Optional[dict], int]:
+    student_id: int, course_id: int, period: int | None = None
+) -> tuple[dict | None, int]:
     """
     Obtener las calificaciones de un estudiante en un curso,
     organizadas por materia y periodo.
@@ -205,7 +204,7 @@ def get_student_grades_service(
 
 def get_student_global_grades_service(
     student_id: int, course_id: int
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """
     Obtener las calificaciones globales de un estudiante en un curso,
     mostrando todas las materias con sus notas por periodo y nota global.
@@ -313,7 +312,7 @@ def get_student_global_grades_service(
 
 def calculate_evaluation_grade(
     db, student_id: int, course_id: int, subject_id: int, period: int
-) -> Optional[float]:
+) -> float | None:
     """Calcular la calificación promedio de evaluaciones para un periodo"""
     try:
         # Obtener evaluaciones del periodo
@@ -349,7 +348,7 @@ def calculate_evaluation_grade(
 
 def calculate_task_grade(
     db, student_id: int, course_id: int, subject_id: int, period: int
-) -> Optional[float]:
+) -> float | None:
     """Calcular la calificación promedio de tareas para un periodo"""
     try:
         # Obtener clases del curso, materia y periodo
@@ -399,10 +398,10 @@ def calculate_task_grade(
 
 
 def calculate_final_from_components(
-    tasks_grade: Optional[float],
-    assignments_grade: Optional[float],
-    evaluations_grade: Optional[float],
-) -> Optional[float]:
+    tasks_grade: float | None,
+    assignments_grade: float | None,
+    evaluations_grade: float | None,
+) -> float | None:
     """
     Calcular la nota final basándose en los 3 componentes.
     Fórmula: (tareas + trabajos + evaluaciones) / cantidad_de_componentes_con_valor
@@ -422,7 +421,7 @@ def calculate_final_from_components(
 
 def update_grade_service(
     student_id: int, course_id: int, subject_id: int, period: int, data: dict
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """
     Actualizar o crear una calificación.
     El final_grade SIEMPRE se calcula automáticamente basándose en los 3 componentes.
@@ -510,7 +509,7 @@ def update_grade_service(
 
 def calculate_final_grade_service(
     student_id: int, course_id: int, subject_id: int, period: int
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Calcular y guardar la nota final del periodo"""
     db = SessionLocal()
     try:

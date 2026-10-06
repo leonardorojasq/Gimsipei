@@ -1,6 +1,6 @@
-from pydantic import BaseModel, constr, conint
-from typing import Optional
 from datetime import datetime
+
+from pydantic import BaseModel, conint, constr
 
 
 class ResourceCreateSchema(BaseModel):
@@ -8,24 +8,24 @@ class ResourceCreateSchema(BaseModel):
     title: constr(min_length=1, max_length=200)
     period: conint(ge=1, le=4)
     resource_type: str = "file"  # "file" or "link"
-    file_url: Optional[str] = None
+    file_url: str | None = None
 
 
 class ResourceUpdateSchema(BaseModel):
-    title: Optional[constr(min_length=1, max_length=200)] = None
-    period: Optional[conint(ge=1, le=4)] = None
-    file_url: Optional[str] = None
+    title: constr(min_length=1, max_length=200) | None = None
+    period: conint(ge=1, le=4) | None = None
+    file_url: str | None = None
 
 
 class ResourceResponseSchema(BaseModel):
     id: int
     class_id: int
     title: str
-    cover_image: Optional[str]
+    cover_image: str | None
     period: int
-    file_url: Optional[str]
+    file_url: str | None
     resource_type: str
-    created_by: Optional[int]
+    created_by: int | None
     created_at: datetime
     updated_at: datetime
 

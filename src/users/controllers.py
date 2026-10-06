@@ -1,24 +1,23 @@
-from typing import Optional, Tuple
 
 from flask import (
     Request,
     Response,
     flash,
+    jsonify,
     redirect,
     render_template,
-    url_for,
     request as flask_request,
-    jsonify,
+    url_for,
 )
 from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 from pydantic import ValidationError
 
+from src.courses.service import get_all_courses_for_dashboard
 from src.database.database import SessionLocal
 from src.models.user import User, UserRole
 from src.utils.api_response import ApiResponse
 from src.utils.decorator_role_required import role_required
 from src.utils.normalize_role_field import normalize_role_field
-from src.courses.service import get_all_courses_for_dashboard
 
 from .service import (
     create_user_service,
@@ -28,7 +27,6 @@ from .service import (
     update_user_service,
 )
 from .validation import UserCreateSchema, UserResponseSchema, UserUpdateSchema
-
 
 AVATAR_FILES = [
     "oveja.png",
@@ -60,7 +58,7 @@ AVATAR_FILES = [
 
 @jwt_required()
 @role_required([UserRole.ADMIN])
-def get_users_controller(request: Request) -> Response | Tuple[list, int]:
+def get_users_controller(request: Request) -> Response | tuple[list, int]:
     try:
         # Solo obtener usuarios con rol TEACHER
         users, total = get_users_service(role=UserRole.TEACHER)
@@ -79,7 +77,7 @@ def get_users_controller(request: Request) -> Response | Tuple[list, int]:
 @jwt_required()
 def get_user_controller(
     user_id: int, request: Request
-) -> Response | Tuple[Optional[UserResponseSchema], int]:
+) -> Response | tuple[UserResponseSchema | None, int]:
     try:
         current_user_id = get_jwt_identity()
         db = SessionLocal()
@@ -107,7 +105,7 @@ def get_user_controller(
 @normalize_role_field
 def create_user_controller(
     request: Request,
-) -> Response | Tuple[Optional[UserResponseSchema], int]:
+) -> Response | tuple[UserResponseSchema | None, int]:
     try:
         if request.is_json:
             data = request.get_json()
@@ -148,7 +146,7 @@ def create_user_controller(
 @normalize_role_field
 def update_user_controller(
     user_id: int, request: Request
-) -> Response | Tuple[Optional[UserResponseSchema], int]:
+) -> Response | tuple[UserResponseSchema | None, int]:
     try:
         if request.is_json:
             data = request.get_json()
@@ -184,7 +182,7 @@ def update_user_controller(
 @role_required(UserRole.ADMIN)
 def delete_user_controller(
     user_id: int, request: Request
-) -> Response | Tuple[Optional[dict], int]:
+) -> Response | tuple[dict | None, int]:
     try:
         current_user_id = get_jwt_identity()
         _, status_code = delete_user_service(user_id, request, current_user_id)

@@ -1,7 +1,9 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime
+from datetime import UTC, datetime
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
+
 from src.database.database import Base
-from datetime import datetime, timezone
 
 
 class QuestionType:
@@ -22,7 +24,7 @@ class EvaluationQuestion(Base):
     question_text = Column(Text, nullable=False)
     question_type = Column(String(20), nullable=False)
     correct_answer = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=datetime.now(UTC))
 
     # Relationships
     evaluation = relationship("Evaluation", back_populates="questions")

@@ -1,9 +1,9 @@
 from flask import Blueprint
 from flask_jwt_extended import jwt_required
-from src.utils.decorator_role_required import role_required
-from src.models.user import UserRole
 
 from src.classes import controllers
+from src.models.user import UserRole
+from src.utils.decorator_role_required import role_required
 
 class_bp = Blueprint("classes", __name__, url_prefix="/classes")
 

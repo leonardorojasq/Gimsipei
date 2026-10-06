@@ -52,6 +52,7 @@ extend-exclude = [
     "env",
     "build",
     "dist",
+    "src/homework",
 ]
 
 [tool.ruff.lint]
@@ -80,4 +81,3 @@ combine-as-imports = true
 quote-style = "double"
 indent-style = "space"
 line-ending = "lf"
-trailing-comma = "magic"

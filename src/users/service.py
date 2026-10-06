@@ -1,20 +1,21 @@
+
 from flask import Request
-from typing import List, Optional, Tuple
+from werkzeug.security import generate_password_hash
 
 # from sqlalchemy.orm import Session
 from src.database.database import SessionLocal
-from src.models.user import User, UserRole
-from werkzeug.security import generate_password_hash
-from .validation import UserCreateSchema, UserUpdateSchema, UserResponseSchema
-from src.models.course_subject import CourseSubject
+from src.models.class_model import ClassModel
 from src.models.course import Course
 from src.models.course_student import CourseStudent
-from src.models.class_model import ClassModel
+from src.models.course_subject import CourseSubject
+from src.models.user import User, UserRole
+
+from .validation import UserCreateSchema, UserResponseSchema, UserUpdateSchema
 
 
 def get_users_service(
-    role: Optional[UserRole] = None,
-) -> Tuple[List[UserResponseSchema], int]:
+    role: UserRole | None = None,
+) -> tuple[list[UserResponseSchema], int]:
     db = SessionLocal()
     try:
         query = db.query(User)
@@ -45,7 +46,7 @@ def get_users_service(
 
 def get_user_service(
     user_id: int, request: Request
-) -> Tuple[Optional[UserResponseSchema], int]:
+) -> tuple[UserResponseSchema | None, int]:
     db = SessionLocal()
     try:
         user = db.query(User).filter(User.id == user_id).first()
@@ -69,7 +70,7 @@ def get_user_service(
 
 def create_user_service(
     data: UserCreateSchema, request: Request
-) -> Tuple[Optional[UserResponseSchema], int]:
+) -> tuple[UserResponseSchema | None, int]:
     db = SessionLocal()
     try:
         # Check if username already exists
@@ -116,7 +117,7 @@ def create_user_service(
 
 def update_user_service(
     user_id: int, data: UserUpdateSchema, request: Request
-) -> Tuple[Optional[UserResponseSchema], int]:
+) -> tuple[UserResponseSchema | None, int]:
     db = SessionLocal()
     try:
         user = db.query(User).filter(User.id == user_id).first()
@@ -182,8 +183,8 @@ def update_user_service(
 
 
 def delete_user_service(
-    user_id: int, _: Request, current_user_id: Optional[int] = None
-) -> Tuple[Optional[dict], int]:
+    user_id: int, _: Request, current_user_id: int | None = None
+) -> tuple[dict | None, int]:
     db = SessionLocal()
     try:
         user = db.query(User).filter(User.id == user_id).first()

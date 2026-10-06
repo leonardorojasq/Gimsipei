@@ -1,6 +1,7 @@
 import os
-from werkzeug.utils import secure_filename
 import uuid
+
+from werkzeug.utils import secure_filename
 
 # Directories for file storage
 BOOKS_DIR = "src/static/books"
