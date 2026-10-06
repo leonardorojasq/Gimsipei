@@ -38,10 +38,6 @@ dependencies = [
     "gunicorn==21.2.0",
 ]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [tool.ruff]
 target-version = "py311"
 line-length = 88
