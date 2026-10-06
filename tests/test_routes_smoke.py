@@ -37,8 +37,7 @@ _PARAM_TABLE = {
 
 # Routes that need NO auth (login page, health, etc.)
 PUBLIC_ENDPOINTS = {
-    "auth.login",  # GET
-    "auth.login",  # POST
+    "auth.login",  # GET and POST share the endpoint name
     "auth.forgot_password",
     "auth.logout",  # POST or GET
     "auth.create_first_admin",  # POST
@@ -79,9 +78,7 @@ def _needs_auth(endpoint: str) -> bool:
     """Routes not in PUBLIC_ENDPOINTS require auth."""
     if endpoint in ("static", "health_check"):
         return False
-    if endpoint.startswith("auth."):
-        return False  # login/forgot/logout work without auth
-    return True
+    return not endpoint.startswith("auth.")
 
 
 @pytest.fixture(scope="module")
