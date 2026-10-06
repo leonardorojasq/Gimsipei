@@ -176,7 +176,6 @@ def student_global_grades_view_controller(course_id: int, student_id: int, _: Re
             accion_logout=True,
         )
     except Exception:
-
         flash("Error al cargar las calificaciones globales", "error")
         return redirect(url_for("grades.grades_view"))
     finally:

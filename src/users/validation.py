@@ -1,4 +1,3 @@
-
 from pydantic import BaseModel, constr, validator
 
 from src.models.user import UserRole

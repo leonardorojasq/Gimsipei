@@ -1,4 +1,3 @@
-
 from ..database.database import SessionLocal
 from ..models.assignment import Assignment
 from ..models.assignment_submission import AssignmentSubmission

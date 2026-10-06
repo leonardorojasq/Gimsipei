@@ -144,4 +144,3 @@ def view_submission_answers(submission_id: int):
 def update_submission_score(submission_id: int):
     """Actualizar la nota de un envío de evaluación"""
     return update_submission_score_controller(submission_id, request)
-

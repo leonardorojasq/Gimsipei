@@ -231,9 +231,7 @@ def update_course_service(
         db.close()
 
 
-def delete_course_service(
-    course_id: int, request: Request
-) -> tuple[dict | None, int]:
+def delete_course_service(course_id: int, request: Request) -> tuple[dict | None, int]:
     """Eliminar un curso"""
     db = SessionLocal()
     try:

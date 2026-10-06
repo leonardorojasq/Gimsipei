@@ -1,4 +1,3 @@
-
 from flask import Request, Response
 from flask_jwt_extended import jwt_required
 from pydantic import ValidationError

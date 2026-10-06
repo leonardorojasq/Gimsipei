@@ -256,9 +256,7 @@ def get_resources_by_teacher_service(teacher_id: int) -> tuple[dict | None, int]
         db.close()
 
 
-def get_resource_service(
-    resource_id: int, request: Request
-) -> tuple[dict | None, int]:
+def get_resource_service(resource_id: int, request: Request) -> tuple[dict | None, int]:
     """Obtener un recurso específico"""
     db = SessionLocal()
     try:
