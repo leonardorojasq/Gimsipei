@@ -32,19 +32,30 @@ if os.getenv("PROFILING") == "1":
 # In production nginx serves /static/uploads/* from
 # /opt/Gimsipei/uploads/ directly. In local dev there is no
 # nginx, so the cover images and download links 404 unless
-# the app itself serves the directory. This route does that,
-# defaulting to src/static/uploads/ (the in-tree path) and
-# overridable with the UPLOADS_DIR env var.
+# the app itself serves the directory. This route does that.
 #
-# Example for dev when the prod server is reachable (SSH mount,
-# shared volume, or just running on the same host):
-#   UPLOADS_DIR=/opt/Gimsipei/uploads .venv/bin/python main.py
+# Path resolution order (first existing dir wins):
+#   1. UPLOADS_DIR env var (explicit override)
+#   2. /opt/Gimsipei/uploads (production path on the VPS host)
+#   3. src/static/uploads (in-tree default)
+#
+# Examples:
+#   UPLOADS_DIR=/some/other/path .venv/bin/python main.py
+#   (no env var): falls back to /opt/Gimsipei/uploads if it
+#   exists, otherwise src/static/uploads/
+def _resolve_uploads_dir() -> str:
+    explicit = os.getenv("UPLOADS_DIR")
+    if explicit:
+        return explicit
+    for candidate in ("/opt/Gimsipei/uploads", os.path.join("src", "static", "uploads")):
+        if os.path.isdir(candidate):
+            return candidate
+    return os.path.join("src", "static", "uploads")
+
+
 @app.route("/static/uploads/<path:filename>")
 def serve_upload(filename):
-    uploads_dir = os.getenv(
-        "UPLOADS_DIR", os.path.join("src", "static", "uploads")
-    )
-    return send_from_directory(uploads_dir, filename)
+    return send_from_directory(_resolve_uploads_dir(), filename)
 
 
 # Database tables are now managed by Flask-Migrate
