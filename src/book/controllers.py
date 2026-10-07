@@ -1,12 +1,9 @@
-import os
-
 from flask import (
     Request,
     Response,
     flash,
     redirect,
     render_template,
-    send_file,
     url_for,
 )
 from flask_jwt_extended import get_jwt_identity, jwt_required
@@ -200,34 +197,35 @@ def delete_book_controller(book_id: int, request: Request):
 
 
 def download_book_controller(book_id: int, _: Request):
-    """Descargar el archivo de un libro"""
-    try:
-        book_data, status_code = get_book_service(book_id)
+    """Descargar el archivo de un libro.
 
-        if status_code == 404:
-            flash("Libro no encontrado", "error")
-            return redirect(url_for("books.books_view"))
+    The DB stores the book file as a URL/path (e.g.
+    /static/uploads/books/X.epub). nginx on the production
+    server exposes /static/uploads/* from
+    /opt/Gimsipei/uploads/, so redirecting the browser to that
+    URL works in both dev (Flask) and prod (nginx in front).
+    The previous implementation tried to read the file from
+    the container's local filesystem (os.path.exists + send_file)
+    and failed because the files live outside the container
+    on the host's /opt/Gimsipei/uploads/.
+    """
+    book_data, status_code = get_book_service(book_id)
 
-        if not book_data or not book_data.get("file_path"):
-            flash("El archivo del libro no está disponible", "error")
-            return redirect(url_for("books.books_view"))
-
-        file_path = os.path.join("src", book_data["file_path"].lstrip("/"))
-
-        if not os.path.exists(file_path):
-            flash("El archivo no existe", "error")
-            return redirect(url_for("books.books_view"))
-
-        # Enviar el archivo con headers
-        return send_file(
-            file_path,
-            as_attachment=True,
-            download_name=f"{book_data['title']}.epub",
-            mimetype="application/epub+zip",
-        )
-    except Exception:
-        flash("Error al descargar el archivo", "error")
+    if status_code == 404 or not book_data:
+        flash("Libro no encontrado", "error")
         return redirect(url_for("books.books_view"))
+
+    file_url = book_data.get("file_path")
+    if not file_url:
+        flash("El archivo del libro no está disponible", "error")
+        return redirect(url_for("books.books_view"))
+
+    # If the stored value is already an absolute URL, use it as-is.
+    # Otherwise it's a path like /static/uploads/... and the browser
+    # will resolve it against the current origin (nginx serves it).
+    if file_url.startswith(("http://", "https://")):
+        return redirect(file_url)
+    return redirect(file_url)
 
 
 # ========== API Controllers ==========
