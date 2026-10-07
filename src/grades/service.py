@@ -252,40 +252,100 @@ def get_student_global_grades_service(
     """
     Obtener las calificaciones globales de un estudiante en un curso,
     mostrando todas las materias con sus notas por periodo y nota global.
+
+    Single-query implementation (5 bulk queries) — was previously
+    1 + N + N*4 + N*4*(1+N) + N*4*(1+1+N) ~ 30-150 queries per
+    request. Same pattern as get_student_grades_service.
     """
     db = SessionLocal()
     try:
-        # Verificar que el estudiante existe y está inscrito en el curso
-        enrollment = (
-            db.query(CourseStudent)
+        # 1) enrollment + student + course
+        row = (
+            db.query(CourseStudent, User, Course)
+            .join(User, User.id == CourseStudent.student_id)
+            .join(Course, Course.id == CourseStudent.course_id)
             .filter(CourseStudent.student_id == student_id)
             .filter(CourseStudent.course_id == course_id)
             .first()
         )
-
-        if not enrollment:
+        if not row:
             return {"error": "Estudiante no inscrito en el curso"}, 404
-
-        student = db.query(User).filter(User.id == student_id).first()
-        course = db.query(Course).filter(Course.id == course_id).first()
-
+        _enrollment, student, course = row
         if not student or not course:
             return {"error": "Estudiante o curso no encontrado"}, 404
 
-        # Obtener las materias del curso
-        course_subjects = (
-            db.query(CourseSubject)
+        # 2) course_subjects + subjects
+        subject_rows = (
+            db.query(Subject)
+            .join(CourseSubject, CourseSubject.subject_id == Subject.id)
             .filter(CourseSubject.course_id == course_id)
             .filter(CourseSubject.is_active.is_(True))
+            .order_by(Subject.name)
             .all()
         )
+        subject_ids = [s.id for s in subject_rows]
 
+        # 3) all grades for the (student, course, subjects) scope
+        grade_rows = (
+            db.query(Grade)
+            .filter(Grade.student_id == student_id)
+            .filter(Grade.course_id == course_id)
+            .filter(Grade.subject_id.in_(subject_ids))
+            .all()
+        )
+        grades_by_subject_period: dict[tuple[int, int], Grade] = {
+            (g.subject_id, g.period): g for g in grade_rows
+        }
+
+        # 4) evaluations + submissions (all 4 periods at once)
+        eval_sub_rows = (
+            db.query(Evaluation, EvaluationSubmission)
+            .outerjoin(
+                EvaluationSubmission,
+                (EvaluationSubmission.evaluation_id == Evaluation.id)
+                & (EvaluationSubmission.student_id == student_id)
+                & EvaluationSubmission.is_completed.is_(True),
+            )
+            .filter(Evaluation.course_id == course_id)
+            .filter(Evaluation.subject_id.in_(subject_ids))
+            .all()
+        )
+        eval_scores: dict[tuple[int, int], list[float]] = {}
+        for ev, sub in eval_sub_rows:
+            if sub is not None and sub.score is not None:
+                eval_scores.setdefault((ev.subject_id, ev.period), []).append(
+                    sub.score
+                )
+
+        # 5) classes + assignments + submissions
+        cas_rows = (
+            db.query(ClassModel, Assignment, AssignmentSubmission)
+            .join(Assignment, Assignment.class_id == ClassModel.id)
+            .outerjoin(
+                AssignmentSubmission,
+                (AssignmentSubmission.assignment_id == Assignment.id)
+                & (AssignmentSubmission.student_id == student_id),
+            )
+            .filter(ClassModel.course_id == course_id)
+            .filter(ClassModel.subject_id.in_(subject_ids))
+            .filter(Assignment.is_active.is_(True))
+            .all()
+        )
+        task_scores: dict[tuple[int, int], list[float]] = {}
+        for _cls, asg, sub in cas_rows:
+            if sub is not None and sub.score is not None:
+                max_score = asg.max_score or 100
+                normalized = (sub.score / max_score) * 5
+                task_scores.setdefault((_cls.subject_id, _cls.period), []).append(
+                    normalized
+                )
+
+        def avg_or_none(values: list[float]) -> float | None:
+            return round(sum(values) / len(values), 1) if values else None
+
+        # 6) build the response
         subjects_global = []
-        for cs in course_subjects:
-            subject = db.query(Subject).filter(Subject.id == cs.subject_id).first()
-            if not subject:
-                continue
-
+        for subject in subject_rows:
             subject_data = {
                 "id": subject.id,
                 "name": subject.name,
@@ -295,59 +355,46 @@ def get_student_global_grades_service(
                 "period_4": None,
                 "global_grade": None,
             }
-
             period_grades = []
-            for p in [1, 2, 3, 4]:
-                # Buscar calificación existente
-                grade = (
-                    db.query(Grade)
-                    .filter(Grade.student_id == student_id)
-                    .filter(Grade.course_id == course_id)
-                    .filter(Grade.subject_id == subject.id)
-                    .filter(Grade.period == p)
-                    .first()
-                )
-
+            for p in (1, 2, 3, 4):
+                grade = grades_by_subject_period.get((subject.id, p))
                 if grade and grade.final_grade is not None:
                     subject_data[f"period_{p}"] = grade.final_grade
                     period_grades.append(grade.final_grade)
                 else:
-                    # Calcular basado en evaluaciones y tareas
-                    eval_grade = calculate_evaluation_grade(
-                        db, student_id, course_id, subject.id, p
-                    )
-                    task_grade = calculate_task_grade(
-                        db, student_id, course_id, subject.id, p
-                    )
-
-                    grades_list = [g for g in [eval_grade, task_grade] if g is not None]
+                    eval_grade = avg_or_none(eval_scores.get((subject.id, p), []))
+                    task_grade = avg_or_none(task_scores.get((subject.id, p), []))
+                    grades_list = [
+                        g for g in [eval_grade, task_grade] if g is not None
+                    ]
                     if grades_list:
-                        final = sum(grades_list) / len(grades_list)
-                        subject_data[f"period_{p}"] = round(final, 1)
+                        final = round(
+                            sum(grades_list) / len(grades_list), 1
+                        )
+                        subject_data[f"period_{p}"] = final
                         period_grades.append(final)
 
-            # Calcular nota global (promedio de los periodos)
             if period_grades:
                 subject_data["global_grade"] = round(
                     sum(period_grades) / len(period_grades), 1
                 )
-
             subjects_global.append(subject_data)
 
-        result = {
-            "student": {
-                "id": student.id,
-                "full_name": student.full_name,
-                "document": student.document,
+        return (
+            {
+                "student": {
+                    "id": student.id,
+                    "full_name": student.full_name,
+                    "document": student.document,
+                },
+                "course": {
+                    "id": course.id,
+                    "name": course.name,
+                },
+                "subjects": subjects_global,
             },
-            "course": {
-                "id": course.id,
-                "name": course.name,
-            },
-            "subjects": subjects_global,
-        }
-
-        return result, 200
+            200,
+        )
     except Exception as e:
         return {"error": f"Error al obtener calificaciones globales: {str(e)}"}, 500
     finally:
