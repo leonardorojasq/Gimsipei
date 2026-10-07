@@ -1,7 +1,9 @@
-from sqlalchemy import Column, Integer, ForeignKey, DateTime, Float, Boolean
+from datetime import UTC, datetime
+
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer
 from sqlalchemy.orm import relationship
+
 from src.database.database import Base
-from datetime import datetime, timezone
 
 
 class EvaluationSubmission(Base):
@@ -16,12 +18,12 @@ class EvaluationSubmission(Base):
     total_questions = Column(Integer, nullable=False, default=10)
     correct_answers = Column(Integer, nullable=True)
     is_completed = Column(Boolean, default=False)
-    submitted_at = Column(DateTime, default=datetime.now(timezone.utc))
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    submitted_at = Column(DateTime, default=datetime.now(UTC))
+    created_at = Column(DateTime, default=datetime.now(UTC))
     updated_at = Column(
         DateTime,
-        default=datetime.now(timezone.utc),
-        onupdate=datetime.now(timezone.utc),
+        default=datetime.now(UTC),
+        onupdate=datetime.now(UTC),
     )
 
     # Relationships

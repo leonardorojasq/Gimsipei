@@ -1,21 +1,20 @@
 from pydantic import BaseModel, Field, validator
-from typing import Optional, Dict, List
 
 
 class EvaluationCreateSchema(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = Field(None, max_length=1000)
+    description: str | None = Field(None, max_length=1000)
     period: int = Field(..., ge=1, le=4)
     course_id: int = Field(..., gt=0)
     subject_id: int = Field(..., gt=0)
 
 
 class EvaluationUpdateSchema(BaseModel):
-    title: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = Field(None, max_length=1000)
-    period: Optional[int] = Field(None, ge=1, le=4)
-    course_id: Optional[int] = Field(None, gt=0)
-    subject_id: Optional[int] = Field(None, gt=0)
+    title: str | None = Field(None, min_length=1, max_length=255)
+    description: str | None = Field(None, max_length=1000)
+    period: int | None = Field(None, ge=1, le=4)
+    course_id: int | None = Field(None, gt=0)
+    subject_id: int | None = Field(None, gt=0)
 
 
 class EvaluationQuestionPayload(BaseModel):
@@ -23,8 +22,8 @@ class EvaluationQuestionPayload(BaseModel):
 
     text: str = Field(..., min_length=1)
     type: str = Field(..., regex="^(open|multi)$")
-    options: Dict[str, str] = Field(default_factory=dict)
-    answer: Optional[str] = None
+    options: dict[str, str] = Field(default_factory=dict)
+    answer: str | None = None
 
     @validator("options", pre=True, always=True)
     def normalize_options(cls, v):
@@ -54,4 +53,4 @@ class EvaluationQuestionPayload(BaseModel):
 class EvaluationWithQuestionsCreateSchema(EvaluationCreateSchema):
     """Schema extendido para crear evaluación con preguntas."""
 
-    questions: List[EvaluationQuestionPayload] = Field(..., min_items=2, max_items=10)
+    questions: list[EvaluationQuestionPayload] = Field(..., min_items=2, max_items=10)

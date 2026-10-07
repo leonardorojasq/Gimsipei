@@ -1,7 +1,9 @@
-from sqlalchemy import Column, Integer, Float, ForeignKey, DateTime, UniqueConstraint
+from datetime import UTC, datetime
+
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, UniqueConstraint
 from sqlalchemy.orm import relationship
+
 from src.database.database import Base
-from datetime import datetime, timezone
 
 
 class Grade(Base):
@@ -21,11 +23,11 @@ class Grade(Base):
     evaluations_grade = Column(Float, nullable=True)  # Evaluaciones
     final_grade = Column(Float, nullable=True)  # Nota final del periodo
 
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=datetime.now(UTC))
     updated_at = Column(
         DateTime,
-        default=datetime.now(timezone.utc),
-        onupdate=datetime.now(timezone.utc),
+        default=datetime.now(UTC),
+        onupdate=datetime.now(UTC),
     )
 
     # Relationships

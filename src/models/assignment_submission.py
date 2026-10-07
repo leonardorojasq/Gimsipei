@@ -1,7 +1,9 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Float
+from datetime import UTC, datetime
+
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
+
 from src.database.database import Base
-from datetime import datetime, timezone
 
 
 class AssignmentSubmission(Base):
@@ -18,7 +20,7 @@ class AssignmentSubmission(Base):
     file_url = Column(String(255), nullable=True)  # URL to uploaded file
     score = Column(Float, nullable=True)  # Grade given by teacher
     feedback = Column(Text, nullable=True)  # Teacher's feedback
-    submitted_at = Column(DateTime, default=datetime.now(timezone.utc))
+    submitted_at = Column(DateTime, default=datetime.now(UTC))
     graded_at = Column(DateTime, nullable=True)
 
     # Relationships

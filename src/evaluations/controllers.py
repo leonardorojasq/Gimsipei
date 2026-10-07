@@ -1,38 +1,38 @@
+import json
+
 from flask import (
     Request,
     Response,
-    render_template,
-    redirect,
-    url_for,
     flash,
     jsonify,
+    redirect,
+    render_template,
+    url_for,
 )
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from typing import Tuple, Optional
-import json
+from flask_jwt_extended import get_jwt_identity, jwt_required
 
-from .service import (
-    get_evaluations_service,
-    get_evaluation_service,
-    get_evaluations_by_period_service,
-    create_evaluation_service,
-    update_evaluation_service,
-    delete_evaluation_service,
-    get_all_courses_with_subjects_for_evaluations,
-)
-from .validation import EvaluationWithQuestionsCreateSchema, EvaluationCreateSchema
-from src.utils.api_response import ApiResponse
-from src.models.user import UserRole
-from src.utils.decorator_role_required import role_required
 from src.database.database import SessionLocal
-from src.models.user import User
-from src.models.subject import Subject
 from src.models.course import Course
+from src.models.course_student import CourseStudent
 from src.models.evaluation import Evaluation
 from src.models.evaluation_question import EvaluationQuestion, QuestionType
 from src.models.evaluation_submission import EvaluationSubmission
-from src.models.course_student import CourseStudent
 from src.models.evaluation_submission_answer import EvaluationSubmissionAnswer
+from src.models.subject import Subject
+from src.models.user import User, UserRole
+from src.utils.api_response import ApiResponse
+from src.utils.decorator_role_required import role_required
+
+from .service import (
+    create_evaluation_service,
+    delete_evaluation_service,
+    get_all_courses_with_subjects_for_evaluations,
+    get_evaluation_service,
+    get_evaluations_by_period_service,
+    get_evaluations_service,
+    update_evaluation_service,
+)
+from .validation import EvaluationCreateSchema, EvaluationWithQuestionsCreateSchema
 
 
 # ========== HTML View Controllers ==========
@@ -138,6 +138,12 @@ def create_evaluation_controller(request: Request):
     """Crear una nueva evaluación"""
     try:
         current_user_id = get_jwt_identity()
+
+        if request.method == "GET":
+            # The create form is rendered as a modal inside the
+            # evaluations view; GET on /evaluations/create has no
+            # standalone page to render. Redirect to the view.
+            return redirect(url_for("evaluations.evaluations_view"))
 
         if request.method == "POST":
             # Obtener datos básicos del formulario
@@ -325,7 +331,7 @@ def get_evaluation_json_controller(evaluation_id: int, _: Request):
 # ========== API Controllers ==========
 @jwt_required()
 @role_required([UserRole.TEACHER, UserRole.ADMIN])
-def get_evaluations_api_controller(request: Request) -> Response | Tuple[list, int]:
+def get_evaluations_api_controller(request: Request) -> Response | tuple[list, int]:
     """API para obtener todas las evaluaciones"""
     try:
         course_id = request.args.get("course_id", type=int)
@@ -351,7 +357,7 @@ def get_evaluations_api_controller(request: Request) -> Response | Tuple[list, i
 @jwt_required()
 def get_evaluation_api_controller(
     evaluation_id: int, request: Request
-) -> Response | Tuple[Optional[dict], int]:
+) -> Response | tuple[dict | None, int]:
     """API para obtener una evaluación específica"""
     try:
         result, status_code = get_evaluation_service(evaluation_id)

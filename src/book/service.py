@@ -1,6 +1,6 @@
+import contextlib
 import os
 from datetime import datetime
-from typing import Optional, Tuple
 
 from werkzeug.utils import secure_filename
 
@@ -24,7 +24,7 @@ def book_to_dict(book):
 
 def create_book_service(
     data: dict, file=None, cover_image=None, created_by_user_id=None
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Crear un nuevo libro"""
     db = SessionLocal()
     file_path = None
@@ -77,15 +77,11 @@ def create_book_service(
         db.rollback()
         # Limpiar archivos si ocurrió un error
         if file_path and os.path.exists(file_path.lstrip("/")):
-            try:
+            with contextlib.suppress(Exception):
                 os.remove(os.path.join("src", file_path.lstrip("/")))
-            except Exception:
-                pass
         if cover_path and os.path.exists(cover_path.lstrip("/")):
-            try:
+            with contextlib.suppress(Exception):
                 os.remove(os.path.join("src", cover_path.lstrip("/")))
-            except Exception:
-                pass
         import traceback
 
         traceback.print_exc()
@@ -94,7 +90,7 @@ def create_book_service(
         db.close()
 
 
-def get_books_service(target_audience=None) -> Tuple[Optional[list], int]:
+def get_books_service(target_audience=None) -> tuple[list | None, int]:
     """Obtener todos los libros, opcionalmente filtrados por audiencia"""
     db = SessionLocal()
     try:
@@ -107,7 +103,7 @@ def get_books_service(target_audience=None) -> Tuple[Optional[list], int]:
         db.close()
 
 
-def get_book_service(book_id: int) -> Tuple[Optional[dict], int]:
+def get_book_service(book_id: int) -> tuple[dict | None, int]:
     """Obtener un libro específico"""
     db = SessionLocal()
     try:
@@ -121,7 +117,7 @@ def get_book_service(book_id: int) -> Tuple[Optional[dict], int]:
 
 def update_book_service(
     book_id: int, data: dict, file=None, cover_image=None
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Actualizar un libro"""
     db = SessionLocal()
     try:
@@ -145,10 +141,8 @@ def update_book_service(
             if book.file_path:
                 old_path = os.path.join("src", book.file_path.lstrip("/"))
                 if os.path.exists(old_path):
-                    try:
+                    with contextlib.suppress(Exception):
                         os.remove(old_path)
-                    except Exception:
-                        pass
 
             # Guardar nuevo archivo
             filename = secure_filename(file.filename)
@@ -166,10 +160,8 @@ def update_book_service(
             if book.cover_image:
                 old_path = os.path.join("src", book.cover_image.lstrip("/"))
                 if os.path.exists(old_path):
-                    try:
+                    with contextlib.suppress(Exception):
                         os.remove(old_path)
-                    except Exception:
-                        pass
 
             # Guardar nueva imagen
             filename = secure_filename(cover_image.filename)
@@ -197,7 +189,7 @@ def update_book_service(
         db.close()
 
 
-def delete_book_service(book_id: int) -> Tuple[Optional[dict], int]:
+def delete_book_service(book_id: int) -> tuple[dict | None, int]:
     """Eliminar un libro"""
     db = SessionLocal()
     try:

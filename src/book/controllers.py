@@ -1,28 +1,25 @@
 from flask import (
     Request,
     Response,
-    render_template,
-    redirect,
-    url_for,
     flash,
-    send_file,
+    redirect,
+    render_template,
+    url_for,
 )
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from typing import Tuple, Optional
-import os
+from flask_jwt_extended import get_jwt_identity, jwt_required
+
+from src.database.database import SessionLocal
+from src.models.user import User, UserRole
+from src.utils.api_response import ApiResponse
+from src.utils.decorator_role_required import role_required
 
 from .service import (
-    get_books_service,
-    get_book_service,
     create_book_service,
-    update_book_service,
     delete_book_service,
+    get_book_service,
+    get_books_service,
+    update_book_service,
 )
-from src.utils.api_response import ApiResponse
-from src.models.user import UserRole
-from src.utils.decorator_role_required import role_required
-from src.database.database import SessionLocal
-from src.models.user import User
 
 
 # ========== HTML View Controllers ==========
@@ -200,40 +197,41 @@ def delete_book_controller(book_id: int, request: Request):
 
 
 def download_book_controller(book_id: int, _: Request):
-    """Descargar el archivo de un libro"""
-    try:
-        book_data, status_code = get_book_service(book_id)
+    """Descargar el archivo de un libro.
 
-        if status_code == 404:
-            flash("Libro no encontrado", "error")
-            return redirect(url_for("books.books_view"))
+    The DB stores the book file as a URL/path (e.g.
+    /static/uploads/books/X.epub). nginx on the production
+    server exposes /static/uploads/* from
+    /opt/Gimsipei/uploads/, so redirecting the browser to that
+    URL works in both dev (Flask) and prod (nginx in front).
+    The previous implementation tried to read the file from
+    the container's local filesystem (os.path.exists + send_file)
+    and failed because the files live outside the container
+    on the host's /opt/Gimsipei/uploads/.
+    """
+    book_data, status_code = get_book_service(book_id)
 
-        if not book_data or not book_data.get("file_path"):
-            flash("El archivo del libro no está disponible", "error")
-            return redirect(url_for("books.books_view"))
-
-        file_path = os.path.join("src", book_data["file_path"].lstrip("/"))
-
-        if not os.path.exists(file_path):
-            flash("El archivo no existe", "error")
-            return redirect(url_for("books.books_view"))
-
-        # Enviar el archivo con headers
-        return send_file(
-            file_path,
-            as_attachment=True,
-            download_name=f"{book_data['title']}.epub",
-            mimetype="application/epub+zip",
-        )
-    except Exception:
-        flash("Error al descargar el archivo", "error")
+    if status_code == 404 or not book_data:
+        flash("Libro no encontrado", "error")
         return redirect(url_for("books.books_view"))
+
+    file_url = book_data.get("file_path")
+    if not file_url:
+        flash("El archivo del libro no está disponible", "error")
+        return redirect(url_for("books.books_view"))
+
+    # If the stored value is already an absolute URL, use it as-is.
+    # Otherwise it's a path like /static/uploads/... and the browser
+    # will resolve it against the current origin (nginx serves it).
+    if file_url.startswith(("http://", "https://")):
+        return redirect(file_url)
+    return redirect(file_url)
 
 
 # ========== API Controllers ==========
 @jwt_required()
 @role_required([UserRole.TEACHER, UserRole.ADMIN])
-def get_books_api_controller(request: Request) -> Response | Tuple[list, int]:
+def get_books_api_controller(request: Request) -> Response | tuple[list, int]:
     """API para obtener todos los libros"""
     try:
         books, status_code = get_books_service()
@@ -253,7 +251,7 @@ def get_books_api_controller(request: Request) -> Response | Tuple[list, int]:
 @jwt_required()
 def get_book_api_controller(
     book_id: int, request: Request
-) -> Response | Tuple[Optional[dict], int]:
+) -> Response | tuple[dict | None, int]:
     """API para obtener un libro específico"""
     try:
         result, status_code = get_book_service(book_id)
