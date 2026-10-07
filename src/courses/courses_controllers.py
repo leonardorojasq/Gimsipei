@@ -27,6 +27,7 @@ from .validation import CourseCreateSchema, CourseUpdateSchema
 @role_required([UserRole.ADMIN])
 def courses_management_controller(request: Request) -> Response:
     """View to manage courses"""
+    current_user = None
     try:
         current_user_id = get_jwt_identity()
         current_user, _ = get_user_service(current_user_id, _)
