@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, flash, jsonify, redirect, request, url_for
+from flask import Flask, flash, jsonify, redirect, request, send_from_directory, url_for
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, unset_jwt_cookies
 from flask_migrate import Migrate
@@ -25,6 +25,27 @@ if os.getenv("PROFILING") == "1":
     from src.utils.profiler import init_profiler
 
     init_profiler(app)
+
+
+# Serve user uploads from a configurable directory.
+#
+# In production nginx serves /static/uploads/* from
+# /opt/Gimsipei/uploads/ directly. In local dev there is no
+# nginx, so the cover images and download links 404 unless
+# the app itself serves the directory. This route does that,
+# defaulting to src/static/uploads/ (the in-tree path) and
+# overridable with the UPLOADS_DIR env var.
+#
+# Example for dev when the prod server is reachable (SSH mount,
+# shared volume, or just running on the same host):
+#   UPLOADS_DIR=/opt/Gimsipei/uploads .venv/bin/python main.py
+@app.route("/static/uploads/<path:filename>")
+def serve_upload(filename):
+    uploads_dir = os.getenv(
+        "UPLOADS_DIR", os.path.join("src", "static", "uploads")
+    )
+    return send_from_directory(uploads_dir, filename)
+
 
 # Database tables are now managed by Flask-Migrate
 # Base.metadata.create_all(bind=engine)  # Commented out - use migrations instead
