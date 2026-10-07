@@ -53,9 +53,14 @@ def _resolve_uploads_dir() -> str:
     return os.path.join("src", "static", "uploads")
 
 
+# Resolve once at startup so we don't pay a stat() per request.
+UPLOADS_DIR = _resolve_uploads_dir()
+print(f"[uploads] serving /static/uploads/* from {UPLOADS_DIR}")
+
+
 @app.route("/static/uploads/<path:filename>")
 def serve_upload(filename):
-    return send_from_directory(_resolve_uploads_dir(), filename)
+    return send_from_directory(UPLOADS_DIR, filename)
 
 
 # Database tables are now managed by Flask-Migrate
