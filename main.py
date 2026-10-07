@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, flash, jsonify, redirect, request, send_from_directory, url_for
+from flask import Flask, flash, jsonify, redirect, request, url_for
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, unset_jwt_cookies
 from flask_migrate import Migrate
@@ -25,42 +25,6 @@ if os.getenv("PROFILING") == "1":
     from src.utils.profiler import init_profiler
 
     init_profiler(app)
-
-
-# Serve user uploads from a configurable directory.
-#
-# In production nginx serves /static/uploads/* from
-# /opt/Gimsipei/uploads/ directly. In local dev there is no
-# nginx, so the cover images and download links 404 unless
-# the app itself serves the directory. This route does that.
-#
-# Path resolution order (first existing dir wins):
-#   1. UPLOADS_DIR env var (explicit override)
-#   2. /opt/Gimsipei/uploads (production path on the VPS host)
-#   3. src/static/uploads (in-tree default)
-#
-# Examples:
-#   UPLOADS_DIR=/some/other/path .venv/bin/python main.py
-#   (no env var): falls back to /opt/Gimsipei/uploads if it
-#   exists, otherwise src/static/uploads/
-def _resolve_uploads_dir() -> str:
-    explicit = os.getenv("UPLOADS_DIR")
-    if explicit:
-        return explicit
-    for candidate in ("/opt/Gimsipei/uploads", os.path.join("src", "static", "uploads")):
-        if os.path.isdir(candidate):
-            return candidate
-    return os.path.join("src", "static", "uploads")
-
-
-# Resolve once at startup so we don't pay a stat() per request.
-UPLOADS_DIR = _resolve_uploads_dir()
-print(f"[uploads] serving /static/uploads/* from {UPLOADS_DIR}")
-
-
-@app.route("/static/uploads/<path:filename>")
-def serve_upload(filename):
-    return send_from_directory(UPLOADS_DIR, filename)
 
 
 # Database tables are now managed by Flask-Migrate
