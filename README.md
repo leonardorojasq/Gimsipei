@@ -90,6 +90,23 @@ uv python install   # instala la versión indicada en .python-version
 uv python pin 3.12
 ```
 
+## Uploads (libros, evaluaciones, portadas)
+
+En producción nginx sirve `/static/uploads/*` desde
+`/opt/Gimsipei/uploads/` (configurado en el server). En
+desarrollo local Flask no tiene un nginx delante, así que las
+portadas y los downloads dan 404 a menos que apunte a donde
+estén los archivos reales.
+
+```bash
+# Apuntar a la carpeta de uploads del prod (sshfs, mount, o
+# corriendo en el mismo host)
+UPLOADS_DIR=/opt/Gimsipei/uploads .venv/bin/python main.py
+```
+
+Si no se setea `UPLOADS_DIR`, Flask sirve desde
+`src/static/uploads/` (comportamiento por defecto).
+
 ## Linting y formateo
 
 ```bash
