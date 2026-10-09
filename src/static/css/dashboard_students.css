@@ -34,7 +34,7 @@
 
     /* margin-left: 50px;
     margin-top: 50px; */
-    background-image: url("../images/logo.png");
+    background-image: url("../images/iconos/logo.png");
     background-repeat: no-repeat;
 }
 
@@ -137,7 +137,7 @@
     align-items: center;
     flex-direction: column;
     gap: 5px;
-    width: 120px;
+    width: 130px;
     height: 158px;
 
     border-radius: 15px;
@@ -306,6 +306,13 @@ body {
     object-fit: cover;
 }
 
+
+@media (min-width:1600px) {
+    .bg-vision{
+        padding: 4rem 6rem 0px;
+    }
+}
+
 @media (max-width:1080px){
     .swiper {
         overflow: auto!important;
@@ -343,7 +350,7 @@ body {
         height: 80px;
         background-size: contain;
     }
-    .clases {
+    /* .clases {
         background-image: url("../images/images-gray/clases.png")!important;
     }
     .recursos {
@@ -360,7 +367,7 @@ body {
     }
     .slider_dashboard_student .box-menu{
         height: 200px;
-    }
+    } */
     
 }
 
@@ -380,6 +387,10 @@ body {
     .bg-lateral {
         display: none;
     }
+    .bg-vision .menu{
+        gap: 2rem 1rem;
+        justify-content: start;
+    }
 
     /* .mision-tp,
     .vision-tp {
@@ -387,4 +398,4 @@ body {
         margin-left: 10px;
         text-align: justify;
     } */
-}
+}
