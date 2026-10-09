@@ -35,16 +35,27 @@ def get_available_course_names() -> list[str]:
 
 # Diccionario de cursos ordenados por grado
 COURSE_NAME_ORDER = {
-    "Sexto": 1,
-    "Séptimo": 2,
-    "Octavo": 3,
-    "Noveno": 4,
-    "Décimo": 5,
-    "Undécimo": 6,
+    "Primero": 1,
+    "Segundo": 2,
+    "Tercero": 3,
+    "Cuarto": 4,
+    "Quinto": 5,
+    "Sexto": 6,
+    "Séptimo": 7,
+    "Octavo": 8,
+    "Noveno": 9,
+    "Décimo": 10,
+    "Undécimo": 11,
+    "Extracurricular": 12,
 }
 
 # Mapeo de nombres de cursos a números de grado
 COURSE_NAME_TO_GRADE = {
+    "Primero": 1,
+    "Segundo": 2,
+    "Tercero": 3,
+    "Cuarto": 4,
+    "Quinto": 5,
     "Sexto": 6,
     "Séptimo": 7,
     "Octavo": 8,

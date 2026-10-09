@@ -30,7 +30,7 @@ def courses_management_controller(request: Request) -> Response:
     current_user = None
     try:
         current_user_id = get_jwt_identity()
-        current_user, _ = get_user_service(current_user_id, _)
+        current_user, _ = get_user_service(current_user_id, request)
 
         courses, total = get_courses_service()
         available_courses = get_available_course_names()
