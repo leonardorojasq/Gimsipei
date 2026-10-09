@@ -20,7 +20,11 @@ from .validation import UserCreateSchema, UserUpdateSchema
 @role_required([UserRole.ADMIN])
 def teachers_management_controller(request: Request) -> Response:
     """View to manage teachers"""
+    current_user = None
     try:
+        current_user_id = get_jwt_identity()
+        current_user, _ = get_user_service(current_user_id, request)
+
         users, total = get_users_service(role=UserRole.TEACHER)
         return render_template(
             "admin/teachers_management.html",
@@ -31,12 +35,6 @@ def teachers_management_controller(request: Request) -> Response:
         )
     except Exception as e:
         flash(f"Error al cargar la lista de docentes: {str(e)}", "danger")
-        # Try to get current user even in error case
-        try:
-            current_user_id = get_jwt_identity()
-            current_user, _ = get_user_service(current_user_id, request)
-        except Exception:
-            current_user = None
         return render_template(
             "admin/teachers_management.html",
             teachers=[],
@@ -106,6 +104,9 @@ def create_teacher_controller(request: Request) -> Response:
 @role_required([UserRole.ADMIN])
 def edit_teacher_controller(teacher_id: int, request: Request) -> Response:
     """View to edit a teacher"""
+    current_user_id = get_jwt_identity()
+    current_user, _ = get_user_service(current_user_id, request)
+
     if request.method == "GET":
         try:
             teacher, status_code = get_user_service(teacher_id, request)
@@ -161,7 +162,12 @@ def edit_teacher_controller(teacher_id: int, request: Request) -> Response:
 
     except Exception as e:
         flash(f"Error interno: {str(e)}", "danger")
-        return render_template("admin/edit_teacher.html", teacher=teacher_data)
+        return render_template(
+            "admin/edit_teacher.html",
+            teacher=teacher_data,
+            user=current_user,
+            accion_logout=True,
+        )
 
 
 @jwt_required()
