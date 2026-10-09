@@ -36,7 +36,7 @@
             <div class="login__password">
                 <input class="login__input" type="password" name="password" id="password" placeholder="Contraseña"
                     autocomplete="current-password" required>
-                <button class="login__toggle" type="button" id="togglePassword" aria-controls="password"
+                <button class="login__toggle" type="button" id="loginTogglePassword" aria-controls="password"
                     aria-pressed="false" aria-label="Mostrar contraseña">
                     <i class="fa-solid fa-eye" aria-hidden="true"></i>
                 </button>
@@ -58,7 +58,9 @@
 <script>
     (function () {
         const input = document.getElementById("password");
-        const toggle = document.getElementById("togglePassword");
+        // Id propio: main.js engancha su toggle generico a #togglePassword y con
+        // los dos handlers cada click cambiaba el tipo dos veces (quedaba igual)
+        const toggle = document.getElementById("loginTogglePassword");
         if (!input || !toggle) return;
 
         toggle.addEventListener("click", () => {

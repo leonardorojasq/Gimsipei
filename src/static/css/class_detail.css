@@ -316,12 +316,25 @@ input[type="file"] {
     font-size: 0.9rem;
 }
 
-/* Responsive */
-@media (max-width:1080px){
-    .content_homework {
-        flex-direction: column;
-    }
+/* Imagen de contenido (vista docente y alumno): va en su propia fila,
+   debajo del texto, hasta el 70% del ancho disponible. El tope de alto evita
+   que una imagen vertical ocupe mas que la pantalla (queda mas angosta). */
+.content-item-image {
+    margin: 1rem 0;
+    display: flex;
+    justify-content: center;
 }
+
+.content-item-image img {
+    width: auto;
+    height: auto;
+    max-width: 70%;
+    max-height: 75vh;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive */
 @media (max-width: 768px) {
     .content-body {
         flex-direction: column;

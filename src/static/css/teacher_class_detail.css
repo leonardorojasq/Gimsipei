@@ -325,21 +325,6 @@
     white-space: pre-line;
 }
 
-.content-item-image {
-    margin-top: 1rem;
-    display: flex;
-    justify-content: center;
-}
-
-.content-item-image img {
-    max-width: 300px;
-    max-height: 250px;
-    width: auto;
-    height: auto;
-    object-fit: contain;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
 
 /* Cards de tareas */
 .tasks-items-container {
