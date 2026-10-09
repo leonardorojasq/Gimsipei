@@ -69,7 +69,7 @@
   width: 100%;
   background: white;
   border-radius: 8px;
-  overflow: hidden;
+  /* overflow: hidden; */
   margin-bottom: 20px;
 }
 
@@ -108,7 +108,7 @@
 
 .students-table tbody td {
   padding: 1.5rem 1rem;
-  color: hsl(0, 0%, 25%);
+  color: #666;
   font-size: 1rem;
 }
 
@@ -260,10 +260,6 @@
 
   .students-table-wrapper {
     overflow-x: auto;
-  }
-
-  .students-table {
-    min-width: 600px;
   }
 
   .students-table thead th,
