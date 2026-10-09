@@ -1,8 +1,10 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime
-from sqlalchemy.orm import relationship
-from src.database.database import Base
+from datetime import UTC, datetime
 from enum import Enum as PyEnum
-from datetime import datetime, timezone
+
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
+
+from src.database.database import Base
 
 
 class ResourceType(PyEnum):
@@ -23,11 +25,11 @@ class Resource(Base):
     file_url = Column(String(255), nullable=True)
     resource_type = Column(Enum(ResourceType), nullable=False)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=datetime.now(UTC))
     updated_at = Column(
         DateTime,
-        default=datetime.now(timezone.utc),
-        onupdate=datetime.now(timezone.utc),
+        default=datetime.now(UTC),
+        onupdate=datetime.now(UTC),
     )
 
     # Relationships

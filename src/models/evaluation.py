@@ -1,7 +1,9 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text
+from datetime import UTC, datetime
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
+
 from src.database.database import Base
-from datetime import datetime, timezone
 
 
 class Evaluation(Base):
@@ -17,11 +19,11 @@ class Evaluation(Base):
     cover_image = Column(String(512), nullable=True)
     period = Column(Integer, nullable=False)  # 1, 2, 3, or 4
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=datetime.now(UTC))
     updated_at = Column(
         DateTime,
-        default=datetime.now(timezone.utc),
-        onupdate=datetime.now(timezone.utc),
+        default=datetime.now(UTC),
+        onupdate=datetime.now(UTC),
     )
 
     # Relationships

@@ -1,33 +1,33 @@
+import os
+
 from flask import (
     Request,
     Response,
-    render_template,
-    redirect,
-    url_for,
     flash,
+    redirect,
+    render_template,
     send_file,
+    url_for,
 )
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from typing import Tuple, Optional
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from pydantic import ValidationError
-import os
+
+from src.database.database import SessionLocal
+from src.models.user import User, UserRole
+from src.utils.api_response import ApiResponse
+from src.utils.decorator_role_required import role_required
 
 from .service import (
-    get_resources_by_class_service,
-    get_resources_by_teacher_service,
-    get_resources_by_student_service,
-    get_resources_by_student_subject_service,
-    get_resource_service,
     create_resource_service,
-    update_resource_service,
     delete_resource_service,
     get_resource_file_path_service,
+    get_resource_service,
+    get_resources_by_class_service,
+    get_resources_by_student_service,
+    get_resources_by_student_subject_service,
+    get_resources_by_teacher_service,
+    update_resource_service,
 )
-from src.utils.api_response import ApiResponse
-from src.models.user import UserRole
-from src.utils.decorator_role_required import role_required
-from src.database.database import SessionLocal
-from src.models.user import User
 
 
 def resources_view_controller(_: Request):
@@ -163,7 +163,7 @@ def download_resource_controller(resource_id: int, _: Request):
 @role_required([UserRole.TEACHER, UserRole.ADMIN])
 def get_resources_by_class_api_controller(
     class_id: int, request: Request
-) -> Response | Tuple[list, int]:
+) -> Response | tuple[list, int]:
     """API para obtener recursos de una clase"""
     try:
         resources, status_code = get_resources_by_class_service(class_id)
@@ -184,7 +184,7 @@ def get_resources_by_class_api_controller(
 @role_required([UserRole.TEACHER, UserRole.ADMIN])
 def get_resource_api_controller(
     resource_id: int, request: Request
-) -> Response | Tuple[Optional[dict], int]:
+) -> Response | tuple[dict | None, int]:
     """API para obtener un recurso específico"""
     try:
         result, status_code = get_resource_service(resource_id, request)
@@ -203,7 +203,7 @@ def get_resource_api_controller(
 @role_required([UserRole.TEACHER, UserRole.ADMIN])
 def create_resource_api_controller(
     request: Request,
-) -> Response | Tuple[Optional[dict], int]:
+) -> Response | tuple[dict | None, int]:
     """API para crear un recurso"""
     try:
         current_user_id = get_jwt_identity()
@@ -253,7 +253,7 @@ def create_resource_api_controller(
 @role_required([UserRole.TEACHER, UserRole.ADMIN])
 def update_resource_api_controller(
     resource_id: int, request: Request
-) -> Response | Tuple[Optional[dict], int]:
+) -> Response | tuple[dict | None, int]:
     """API para actualizar un recurso"""
     try:
         # Obtener datos del formulario
@@ -296,7 +296,7 @@ def update_resource_api_controller(
 @role_required([UserRole.TEACHER, UserRole.ADMIN])
 def delete_resource_api_controller(
     resource_id: int, request: Request
-) -> Response | Tuple[Optional[dict], int]:
+) -> Response | tuple[dict | None, int]:
     """API para eliminar un recurso"""
     try:
         _, status_code = delete_resource_service(resource_id, request)

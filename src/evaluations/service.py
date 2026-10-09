@@ -1,15 +1,16 @@
-from typing import Tuple, Optional, List, Dict
-from datetime import datetime
+import contextlib
 import os
+from datetime import datetime
+
 from werkzeug.utils import secure_filename
 
+from ..database.database import SessionLocal
+from ..models.course import Course
+from ..models.course_subject import CourseSubject
 from ..models.evaluation import Evaluation
 from ..models.evaluation_question import EvaluationQuestion, QuestionType
 from ..models.evaluation_question_option import EvaluationQuestionOption
-from ..models.course import Course
 from ..models.subject import Subject
-from ..models.course_subject import CourseSubject
-from ..database.database import SessionLocal
 
 
 def evaluation_to_dict(evaluation):
@@ -33,10 +34,10 @@ def evaluation_to_dict(evaluation):
 
 
 def get_evaluations_service(
-    course_id: Optional[int] = None,
-    subject_id: Optional[int] = None,
-    period: Optional[int] = None,
-) -> Tuple[List[dict], int]:
+    course_id: int | None = None,
+    subject_id: int | None = None,
+    period: int | None = None,
+) -> tuple[list[dict], int]:
     """Obtener todas las evaluaciones, opcionalmente filtradas"""
     db = SessionLocal()
     try:
@@ -62,7 +63,7 @@ def get_evaluations_service(
         db.close()
 
 
-def get_evaluation_service(evaluation_id: int) -> Tuple[Optional[dict], int]:
+def get_evaluation_service(evaluation_id: int) -> tuple[dict | None, int]:
     """Obtener una evaluación específica"""
     db = SessionLocal()
     try:
@@ -81,7 +82,7 @@ def get_evaluation_service(evaluation_id: int) -> Tuple[Optional[dict], int]:
 
 def get_evaluations_by_period_service(
     course_id: int, subject_id: int
-) -> Tuple[Dict[int, List[dict]], int]:
+) -> tuple[dict[int, list[dict]], int]:
     """Obtener evaluaciones agrupadas por periodo"""
     db = SessionLocal()
     try:
@@ -111,7 +112,7 @@ def get_evaluations_by_period_service(
         db.close()
 
 
-def _save_cover_image(cover_image) -> Optional[str]:
+def _save_cover_image(cover_image) -> str | None:
     """Guardar imagen de portada y devolver ruta relativa para servirla."""
     if not cover_image or not getattr(cover_image, "filename", None):
         return None
@@ -131,8 +132,8 @@ def create_evaluation_service(
     data: dict,
     cover_image=None,
     created_by_user_id=None,
-    questions: Optional[list[dict]] = None,
-) -> Tuple[Optional[dict], int]:
+    questions: list[dict] | None = None,
+) -> tuple[dict | None, int]:
     """
     Crear una nueva evaluación.
 
@@ -140,7 +141,7 @@ def create_evaluation_service(
     `evaluation_questions` y `evaluation_question_options`.
     """
     db = SessionLocal()
-    cover_path: Optional[str] = None
+    cover_path: str | None = None
 
     try:
         # Procesar imagen de portada si existe
@@ -215,7 +216,7 @@ def create_evaluation_service(
 
 def update_evaluation_service(
     evaluation_id: int, data: dict, cover_image=None
-) -> Tuple[Optional[dict], int]:
+) -> tuple[dict | None, int]:
     """Actualizar una evaluación"""
     db = SessionLocal()
     try:
@@ -241,10 +242,8 @@ def update_evaluation_service(
             if evaluation.cover_image:
                 old_path = os.path.join("src", evaluation.cover_image.lstrip("/"))
                 if os.path.exists(old_path):
-                    try:
+                    with contextlib.suppress(Exception):
                         os.remove(old_path)
-                    except Exception:
-                        pass
 
             # Guardar nueva imagen
             filename = secure_filename(cover_image.filename)
@@ -272,7 +271,7 @@ def update_evaluation_service(
         db.close()
 
 
-def delete_evaluation_service(evaluation_id: int) -> Tuple[Optional[dict], int]:
+def delete_evaluation_service(evaluation_id: int) -> tuple[dict | None, int]:
     """Eliminar una evaluación"""
     db = SessionLocal()
     try:
@@ -313,28 +312,40 @@ def delete_evaluation_service(evaluation_id: int) -> Tuple[Optional[dict], int]:
 def get_all_courses_with_subjects_for_evaluations():
     """
     Obtener todos los cursos con sus materias asignadas para evaluaciones.
-    Similar a get_all_courses_with_subjects pero específico para evaluaciones.
+
+    Single-query implementation: one JOIN fetches (course, course_subject,
+    subject) tuples, then we group in Python. Was previously N+1: one
+    query for the course list, plus one query per course to fetch its
+    subjects. With 12 courses in the seed (and the same in prod) that
+    cost 13 round-trips — each ~360ms of network latency against the
+    production DB, so ~4.7s of pure network on this view alone.
     """
     db = SessionLocal()
     try:
-        # Obtener todos los cursos
-        courses = db.query(Course).all()
-
-        courses_data = []
-
-        for course in courses:
-            # Obtener las materias asignadas al curso
-            course_subjects = (
-                db.query(CourseSubject, Subject)
-                .join(Subject, CourseSubject.subject_id == Subject.id)
-                .filter(CourseSubject.course_id == course.id)
-                .order_by(Subject.name)
-                .all()
+        rows = (
+            db.query(Course, CourseSubject, Subject)
+            .outerjoin(
+                CourseSubject, CourseSubject.course_id == Course.id
             )
+            .outerjoin(Subject, Subject.id == CourseSubject.subject_id)
+            .all()
+        )
 
-            subjects_list = []
-            for course_subject, subject in course_subjects:
-                subjects_list.append(
+        # Group in a single pass, preserving the (course) order they
+        # came out of the DB, and alphabetical subject order per course.
+        course_order: list[int] = []
+        courses_by_id: dict[int, dict] = {}
+        for course, course_subject, subject in rows:
+            if course.id not in courses_by_id:
+                course_order.append(course.id)
+                courses_by_id[course.id] = {
+                    "id": course.id,
+                    "name": course.name,
+                    "academic_year": course.academic_year,
+                    "subjects": [],
+                }
+            if subject is not None and course_subject is not None:
+                courses_by_id[course.id]["subjects"].append(
                     {
                         "id": subject.id,
                         "name": subject.name,
@@ -342,16 +353,11 @@ def get_all_courses_with_subjects_for_evaluations():
                     }
                 )
 
-            courses_data.append(
-                {
-                    "id": course.id,
-                    "name": course.name,
-                    "academic_year": course.academic_year,
-                    "subjects": subjects_list,
-                }
-            )
+        for course in courses_by_id.values():
+            course["subjects"].sort(key=lambda s: s["name"])
 
-        # Ordenar por nombre del curso
+        courses_data = [courses_by_id[cid] for cid in course_order]
+
         COURSE_NAME_ORDER = {
             "Sexto": 6,
             "Séptimo": 7,

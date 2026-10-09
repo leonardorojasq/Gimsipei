@@ -1,7 +1,9 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
+from datetime import UTC, datetime
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
+
 from src.database.database import Base
-from datetime import datetime, timezone
 
 
 class ClassContent(Base):
@@ -17,11 +19,11 @@ class ClassContent(Base):
     section_title = Column(String(200), nullable=True)  # e.g., "Cómo funciona:"
     content_text = Column(Text, nullable=True)  # Main text content
     content_image = Column(String(255), nullable=True)  # Image URL if any
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=datetime.now(UTC))
     updated_at = Column(
         DateTime,
-        default=datetime.now(timezone.utc),
-        onupdate=datetime.now(timezone.utc),
+        default=datetime.now(UTC),
+        onupdate=datetime.now(UTC),
     )
 
     # Relationships

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, constr, validator
-from typing import Optional
+
 from src.models.user import UserRole
 
 
@@ -7,8 +7,8 @@ class UserCreateSchema(BaseModel):
     username: constr(min_length=3, max_length=50)
     document: constr(min_length=1, max_length=20)
     password: constr(min_length=6)
-    full_name: Optional[constr(max_length=100)] = None
-    avatar: Optional[str] = None
+    full_name: constr(max_length=100) | None = None
+    avatar: str | None = None
     role: UserRole
 
 
@@ -18,9 +18,9 @@ class StudentCreateSchema(BaseModel):
     username: constr(min_length=3, max_length=50)
     document: constr(min_length=1, max_length=20)
     password: constr(min_length=6)
-    full_name: Optional[constr(max_length=100)] = None
-    avatar: Optional[str] = None
-    course_id: Optional[int] = None
+    full_name: constr(max_length=100) | None = None
+    avatar: str | None = None
+    course_id: int | None = None
 
     @validator("course_id", pre=True)
     @classmethod
@@ -33,8 +33,8 @@ class StudentCreateSchema(BaseModel):
             if course_id <= 0:
                 raise ValueError("course_id debe ser un entero positivo")
             return course_id
-        except (ValueError, TypeError):
-            raise ValueError("course_id debe ser un entero válido")
+        except (ValueError, TypeError) as err:
+            raise ValueError("course_id debe ser un entero válido") from err
 
     def to_user_create_schema(self) -> UserCreateSchema:
         """Convierte este schema a UserCreateSchema con rol STUDENT"""
@@ -49,21 +49,21 @@ class StudentCreateSchema(BaseModel):
 
 
 class UserUpdateSchema(BaseModel):
-    username: Optional[constr(min_length=3, max_length=50)] = None
-    document: Optional[constr(min_length=1, max_length=20)] = None
-    password: Optional[constr(min_length=6)] = None
-    full_name: Optional[constr(max_length=100)] = None
-    avatar: Optional[str] = None
-    role: Optional[UserRole] = None
-    is_active: Optional[bool] = None
+    username: constr(min_length=3, max_length=50) | None = None
+    document: constr(min_length=1, max_length=20) | None = None
+    password: constr(min_length=6) | None = None
+    full_name: constr(max_length=100) | None = None
+    avatar: str | None = None
+    role: UserRole | None = None
+    is_active: bool | None = None
 
 
 class UserResponseSchema(BaseModel):
     id: int
     username: str
-    document: Optional[str]
-    full_name: Optional[str]
-    avatar: Optional[str] = None
+    document: str | None
+    full_name: str | None
+    avatar: str | None = None
     role: str
     is_active: bool
 

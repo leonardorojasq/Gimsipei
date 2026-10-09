@@ -8,9 +8,9 @@ from src.utils.decorator_role_required import role_required
 from .service import (
     create_subject_service,
     delete_subject_service,
+    get_available_subject_names,
     get_course_by_id_service,
     get_teachers_for_form_service,
-    get_available_subject_names,
     update_subject_service,
 )
 from .validation import SubjectCreateSchema, SubjectUpdateSchema

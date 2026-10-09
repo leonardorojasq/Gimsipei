@@ -1,6 +1,6 @@
-from pydantic import BaseModel, constr
-from typing import Optional
 from datetime import datetime
+
+from pydantic import BaseModel, constr
 
 
 class CourseCreateSchema(BaseModel):
@@ -8,15 +8,15 @@ class CourseCreateSchema(BaseModel):
 
 
 class CourseUpdateSchema(BaseModel):
-    name: Optional[constr(min_length=1, max_length=100)] = None
-    description: Optional[constr(max_length=255)] = None
+    name: constr(min_length=1, max_length=100) | None = None
+    description: constr(max_length=255) | None = None
 
 
 class CourseResponseSchema(BaseModel):
     id: int
     academic_year: str
     name: str
-    description: Optional[str]
+    description: str | None
     created_by: int
     created_at: datetime
     updated_at: datetime

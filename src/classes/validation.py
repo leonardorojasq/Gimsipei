@@ -1,7 +1,7 @@
-from typing import Optional
 from datetime import datetime
-from pydantic import BaseModel
 from enum import Enum
+
+from pydantic import BaseModel
 
 
 class ResourceType(str, Enum):
@@ -12,7 +12,7 @@ class ResourceType(str, Enum):
 # Subject Schemas
 class SubjectBase(BaseModel):
     name: str
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class SubjectCreate(SubjectBase):
@@ -20,13 +20,13 @@ class SubjectCreate(SubjectBase):
 
 
 class SubjectUpdate(SubjectBase):
-    name: Optional[str] = None
+    name: str | None = None
     teacher_id: int
 
 
 class SubjectInDB(SubjectBase):
     id: int
-    teacher_id: int
+    teacher_id: int | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -37,7 +37,7 @@ class SubjectInDB(SubjectBase):
 # Class Schemas
 class ClassBase(BaseModel):
     title: str
-    description: Optional[str] = None
+    description: str | None = None
     class_number: int
     date: datetime
 
@@ -47,10 +47,10 @@ class ClassCreate(ClassBase):
 
 
 class ClassUpdate(ClassBase):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    class_number: Optional[int] = None
-    date: Optional[datetime] = None
+    title: str | None = None
+    description: str | None = None
+    class_number: int | None = None
+    date: datetime | None = None
 
 
 class ClassInDB(ClassBase):
@@ -66,8 +66,8 @@ class ClassInDB(ClassBase):
 # Resource Schemas
 class ResourceBase(BaseModel):
     class_id: int
-    file_url: Optional[str] = None
-    link: Optional[str] = None
+    file_url: str | None = None
+    link: str | None = None
     resource_type: ResourceType
 
 
@@ -76,9 +76,9 @@ class ResourceCreate(ResourceBase):
 
 
 class ResourceUpdate(ResourceBase):
-    file_url: Optional[str] = None
-    link: Optional[str] = None
-    resource_type: Optional[ResourceType] = None
+    file_url: str | None = None
+    link: str | None = None
+    resource_type: ResourceType | None = None
 
 
 class ResourceInDB(ResourceBase):

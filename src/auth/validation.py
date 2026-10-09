@@ -1,5 +1,6 @@
-from pydantic import BaseModel, constr
 from enum import Enum
+
+from pydantic import BaseModel, constr
 
 
 class UserRole(str, Enum):

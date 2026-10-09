@@ -1,7 +1,9 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Boolean
+from datetime import UTC, datetime
+
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
+
 from src.database.database import Base
-from datetime import datetime, timezone
 
 
 class Assignment(Base):
@@ -19,11 +21,11 @@ class Assignment(Base):
     max_score = Column(Integer, nullable=True, default=100)
     is_active = Column(Boolean, default=True)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=datetime.now(UTC))
     updated_at = Column(
         DateTime,
-        default=datetime.now(timezone.utc),
-        onupdate=datetime.now(timezone.utc),
+        default=datetime.now(UTC),
+        onupdate=datetime.now(UTC),
     )
 
     # Relationships

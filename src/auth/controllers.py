@@ -1,19 +1,19 @@
-from flask import render_template, Request, jsonify, Response
+from flask import Request, Response, flash, jsonify, redirect, render_template, url_for
 from flask_jwt_extended import jwt_required
+from pydantic import ValidationError
+
 from .service import (
-    login_user_service,
-    get_current_user_service,
-    logout_user_service,
     create_first_admin_service,
     forgot_password_service,
+    get_current_user_service,
+    login_user_service,
+    logout_user_service,
 )
 from .validation import (
-    LoginSchema,
     CreateFirstAdminSchema,
     ForgotPasswordSchema,
+    LoginSchema,
 )
-from pydantic import ValidationError
-from flask import flash, redirect, url_for
 
 
 def login_user_controller(request: Request) -> Response | tuple[dict, int]:

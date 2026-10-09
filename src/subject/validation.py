@@ -1,7 +1,6 @@
-from typing import Optional
+from datetime import datetime
 
 from pydantic import BaseModel, constr
-from datetime import datetime
 
 
 class SubjectCreateSchema(BaseModel):
@@ -9,7 +8,7 @@ class SubjectCreateSchema(BaseModel):
 
 
 class SubjectUpdateSchema(BaseModel):
-    name: Optional[constr(min_length=1, max_length=100)] = None
+    name: constr(min_length=1, max_length=100) | None = None
 
 
 class SubjectResponseSchema(BaseModel):

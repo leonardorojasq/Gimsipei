@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask, flash, jsonify, redirect, request, url_for
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, unset_jwt_cookies
@@ -18,6 +20,12 @@ app.config.from_object(Config)
 jwt = JWTManager(app)
 CORS(app)
 migrate = Migrate(app, Base)
+
+if os.getenv("PROFILING") == "1":
+    from src.utils.profiler import init_profiler
+
+    init_profiler(app)
+
 
 # Database tables are now managed by Flask-Migrate
 # Base.metadata.create_all(bind=engine)  # Commented out - use migrations instead

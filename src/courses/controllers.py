@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Optional, Tuple
 
 from flask import Request, Response, flash, redirect, send_file, url_for
 from flask_jwt_extended import jwt_required
@@ -32,7 +31,7 @@ from .validation import (
 # API Controllers para AJAX
 @jwt_required()
 @role_required([UserRole.ADMIN])
-def get_courses_api_controller(request: Request) -> Response | Tuple[list, int]:
+def get_courses_api_controller(request: Request) -> Response | tuple[list, int]:
     """API para obtener lista de cursos"""
     try:
         # Obtener parámetros de filtro
@@ -58,7 +57,7 @@ def get_courses_api_controller(request: Request) -> Response | Tuple[list, int]:
 @role_required([UserRole.ADMIN])
 def get_course_api_controller(
     course_id: int, request: Request
-) -> Response | Tuple[Optional[CourseResponseSchema], int]:
+) -> Response | tuple[CourseResponseSchema | None, int]:
     """API para obtener un curso específico"""
     try:
         result, status_code = get_course_service(course_id, request)
@@ -77,7 +76,7 @@ def get_course_api_controller(
 @role_required([UserRole.ADMIN])
 def create_course_api_controller(
     request: Request,
-) -> Response | Tuple[Optional[CourseResponseSchema], int]:
+) -> Response | tuple[CourseResponseSchema | None, int]:
     """API para crear un curso"""
     try:
         if request.is_json:
@@ -119,7 +118,7 @@ def create_course_api_controller(
 @role_required([UserRole.ADMIN])
 def update_course_api_controller(
     course_id: int, request: Request
-) -> Response | Tuple[Optional[CourseResponseSchema], int]:
+) -> Response | tuple[CourseResponseSchema | None, int]:
     """API para actualizar un curso"""
     try:
         if request.is_json:
@@ -163,7 +162,7 @@ def update_course_api_controller(
 @role_required([UserRole.ADMIN])
 def delete_course_api_controller(
     course_id: int, request: Request
-) -> Response | Tuple[Optional[dict], int]:
+) -> Response | tuple[dict | None, int]:
     """API para eliminar un curso"""
     try:
         result, status_code = delete_course_service(course_id, request)
@@ -189,7 +188,7 @@ def delete_course_api_controller(
 @role_required([UserRole.ADMIN])
 def get_course_subjects_api_controller(
     course_id: int, request: Request
-) -> Response | Tuple[list, int]:
+) -> Response | tuple[list, int]:
     """API: listar materias asignadas a un curso"""
     try:
         subjects, _ = get_course_subjects_service(course_id)
@@ -206,7 +205,7 @@ def get_course_subjects_api_controller(
 @role_required([UserRole.ADMIN])
 def add_subject_to_course_api_controller(
     course_id: int, request: Request
-) -> Response | Tuple[Optional[dict], int]:
+) -> Response | tuple[dict | None, int]:
     """API: agregar materia a un curso"""
     try:
         data = request.get_json() if request.is_json else request.form.to_dict()
@@ -240,7 +239,7 @@ def add_subject_to_course_api_controller(
 @role_required([UserRole.ADMIN])
 def remove_subject_from_course_api_controller(
     course_id: int, subject_id: int, teacher_id: int, request: Request
-) -> Response | Tuple[Optional[dict], int]:
+) -> Response | tuple[dict | None, int]:
     """API: eliminar materia de un curso"""
     try:
         result, status_code = remove_subject_from_course_service(
