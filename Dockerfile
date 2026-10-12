@@ -1,5 +1,5 @@
 # Base stage: system dependencies and Python
-FROM python:3.11-slim AS base
+FROM python:3.13-slim AS base
 
 ENV DIR=/app
 WORKDIR $DIR
@@ -14,29 +14,32 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Builder stage: install Python dependencies and copy the source code
 FROM base AS builder
 
-# Copy requirements and install them in a venv
-COPY requirements.txt .
-RUN python -m venv /opt/venv && \
-    /opt/venv/bin/pip install --upgrade pip && \
-    /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Copy dependency manifests first to leverage Docker layer caching
+COPY pyproject.toml uv.lock ./
+
+# Sync dependencies into a project-local venv (no dev deps, no project install)
+RUN uv sync --frozen --no-dev --no-install-project
 
 # Copy the source code
 COPY . .
 
 # Production stage: only the necessary for running the app
-FROM python:3.11-slim AS production
+FROM python:3.13-slim AS production
 
 ENV DIR=/app
 WORKDIR $DIR
 
 # Copy the venv from the builder
-COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder $DIR/.venv $DIR/.venv
 
 # Copy the source code from the builder
 COPY --from=builder $DIR $DIR
 
-# Use the default venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Use the project venv
+ENV PATH="$DIR/.venv/bin:$PATH"
 
 # Environment variables for production
 ENV FLASK_ENV=production

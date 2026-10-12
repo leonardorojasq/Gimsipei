@@ -33,10 +33,12 @@ build/
 
 # Documentation
 README.md
-
-# Ignore requirements lock files (if generated)
-requirements*.lock
-
-# Ignore README and docs
-README.md
 docs/
+
+# Git metadata (never needed in the image)
+.git/
+.gitignore
+
+# uv cache and lock backups
+.uv-cache/
+uv-cache/
