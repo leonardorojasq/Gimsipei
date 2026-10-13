@@ -84,44 +84,46 @@
             <!-- Books Grid -->
             {% if books and books|length > 0 %}
                 {% for book in books %}
-                    <a href="{{ url_for('books.read_book', book_id=book.id) }}" class="book-link">
-                        <div class="book flex flex-column" 
+                    <div class="book-link">
+                        <div class="book flex flex-column"
                              data-book-title="{{ book.title|lower }}"
-                             data-book-author="{{ book.author|lower }}" 
+                             data-book-author="{{ book.author|lower }}"
                              data-book-audience="{{ book.target_audience }}"
                              data-book-grade="{{ book.grade_level if book.grade_level else '' }}">
                             {% if book.cover_image %}
                                 <img width="100%" height="100%"
-                                     src="{{ book.cover_image }}"
-                                     alt="{{ book.title }}"
-                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                     src="{{ book.cover_image }}" alt="{{ book.title }}">
+                            {% else %}
+                                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #ea6ef4; min-height: 200px;">
+                                    <i class="fas fa-book" style="font-size: 3rem; color: rgba(255, 255, 255, 0.7);"></i>
+                                </div>
                             {% endif %}
-                            <div class="book-placeholder"
-                                 style="{% if book.cover_image %}display: none; {% endif %}width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #ea6ef4; min-height: 200px;">
-                                <i class="fas fa-book" style="font-size: 3rem; color: rgba(255, 255, 255, 0.7);"></i>
-                            </div>
                             <div class="title_speciality flex flex-column">
-                                {{ book.title }}
+                                <a href="{{ url_for('books.read_book', book_id=book.id) }}" style="color: #666; font-size: 0.8rem;" title="Abrir">
+                                    {{ book.title }}
+                                </a>
                                 {% if book.grade_level %}
                                     <small style="color: #666; font-size: 0.8rem;">{{ book.grade_level }}° Grado</small>
                                 {% endif %}
                                 <hr class="libros_br" />
-                                ePub
+                                <a href="{{ url_for('books.download_book', book_id=book.id) }}"
+                                   onclick="event.stopPropagation();" title="Descargar"><i class="fas fa-download"></i></a>
                                 {% if user.role == "teacher" %}
                                     <span class="open-delete-book-modal" data-book-id="{{ book.id }}" title="Eliminar"
-                                       style="margin-top: 0.5rem; color: #dc3545; cursor: pointer; align-self: flex-end;"
-                                       onclick="event.preventDefault(); event.stopPropagation();">
+                                          style="margin-top: 0.5rem; color: #dc3545; cursor: pointer; align-self: flex-end;"
+                                          onclick="event.preventDefault(); event.stopPropagation();">
                                         <i class="fas fa-trash"></i>
                                     </span>
                                 {% endif %}
                             </div>
                         </div>
-                    </a>
+                    </div>
                 {% endfor %}
             {% else %}
                 <div class="empty-books" style="width: 100%; text-align: center; padding: 3rem;">
                     <i class="fas fa-book-open" style="font-size: 4rem; color: #bdc3c7; margin-bottom: 1rem;"></i>
-                    <p style="color: #999; font-size: 1.1rem; margin-bottom: 1.5rem;">No hay libros disponibles</p>
+                    <p style="color: #999; font-size: 1.1rem; margin-bottom: 1.5rem; text-align: center;">No hay libros
+                        disponibles</p>
                     {% if user.role == "teacher" %}
                         <button class="btn btn-libros active btn-add-first-book">
                             Crear primer libro
