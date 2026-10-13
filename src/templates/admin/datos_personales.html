@@ -22,7 +22,7 @@
                 alt="Avatar" id="profileAvatar">
             <div class="flex flex-column ">
                 <h2>{{ user.full_name or user.username }}</h2>
-                <span>{{ user.role }}</span>
+                <span>{{ user.role | role_label }}</span>
             </div>
 
         </div>

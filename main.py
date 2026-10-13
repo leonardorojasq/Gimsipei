@@ -9,6 +9,7 @@ from config import Config
 from src.database.database import Base
 from src.models import *
 from src.routes import register_blueprints
+from src.utils.jinja_filters import register_jinja_filters
 
 # Initialize Flask app
 app = Flask(__name__, template_folder="src/templates", static_folder="src/static")
@@ -25,6 +26,9 @@ if os.getenv("PROFILING") == "1":
     from src.utils.profiler import init_profiler
 
     init_profiler(app)
+
+# Register custom Jinja filters
+register_jinja_filters(app)
 
 
 # Database tables are now managed by Flask-Migrate

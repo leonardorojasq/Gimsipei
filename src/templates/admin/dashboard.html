@@ -17,7 +17,7 @@
             <p>{{ user.full_name }}</p>
             <div class="data_grade_category flex flex-column">
                 <p>{{ user.document }}</p>
-                <p>{{ user.role }}</p>
+                <p>{{ user.role | role_label }}</p>
             </div>
         </div>
 
