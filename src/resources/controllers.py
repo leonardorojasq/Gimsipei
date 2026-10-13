@@ -13,6 +13,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from pydantic import ValidationError
 
 from src.database.database import SessionLocal
+from src.models.class_model import ClassModel
 from src.models.user import User, UserRole
 from src.utils.api_response import ApiResponse
 from src.utils.decorator_role_required import role_required
@@ -178,6 +179,64 @@ def get_resources_by_class_api_controller(
         return ApiResponse.error(
             message="Error interno del servidor", details=str(e), status_code=500
         )
+
+
+@jwt_required()
+@role_required([UserRole.TEACHER, UserRole.ADMIN])
+def get_available_classes_api_controller(request: Request) -> Response:
+    """
+    API: listar clases existentes por course_id, subject_id y period.
+    Se usa para poblar el select del modal de creación de recursos y evitar
+    que se envíen números de clase inexistentes.
+    """
+    db = SessionLocal()
+    try:
+        course_id = request.args.get("course_id", type=int)
+        subject_id = request.args.get("subject_id", type=int)
+        period = request.args.get("period", type=int)
+
+        if not course_id or not subject_id or not period:
+            return ApiResponse.error(
+                message="Faltan parámetros requeridos: course_id, subject_id, period",
+                status_code=400,
+            )
+
+        classes = (
+            db.query(ClassModel)
+            .filter(
+                ClassModel.course_id == course_id,
+                ClassModel.subject_id == subject_id,
+                ClassModel.period == period,
+            )
+            .order_by(ClassModel.class_number.asc())
+            .all()
+        )
+
+        items = [
+            {
+                "id": c.id,
+                "class_number": c.class_number,
+                "title": c.title,
+                "period": c.period,
+            }
+            for c in classes
+        ]
+
+        return ApiResponse.list_response(
+            items=items,
+            total=len(items),
+            page=1,
+            per_page=max(len(items), 1),
+            message="Clases obtenidas exitosamente",
+        )
+    except Exception as e:
+        return ApiResponse.error(
+            message="Error al obtener clases",
+            details=str(e),
+            status_code=500,
+        )
+    finally:
+        db.close()
 
 
 @jwt_required()

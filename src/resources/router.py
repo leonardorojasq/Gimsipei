@@ -10,6 +10,7 @@ from .controllers import (
     delete_resource_api_controller,
     delete_resource_controller,
     download_resource_controller,
+    get_available_classes_api_controller,
     get_resource_api_controller,
     get_resources_by_class_api_controller,
     resources_view_controller,
@@ -72,6 +73,14 @@ def resources_view_subject(course_id, subject_id):
 
 
 # ========== API Routes ==========
+@resources_bp.route("/api/classes", methods=["GET"])
+@jwt_required()
+@role_required([UserRole.TEACHER, UserRole.ADMIN])
+def get_available_classes_api():
+    """API para listar clases existentes (por curso/materia/periodo) para crear recursos"""
+    return get_available_classes_api_controller(request)
+
+
 @resources_bp.route("/api/class/<int:class_id>", methods=["GET"])
 def get_resources_by_class_api(class_id):
     """API para obtener recursos de una clase"""
