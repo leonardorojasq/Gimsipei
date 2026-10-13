@@ -21,10 +21,11 @@ async function loadAvailableClassesForResourceModal() {
   );
   if (!classSelect || !submitBtn) return;
 
-  // Reset UI state
+  // Reset UI state (only the select is locked while loading; the submit button
+  // stays enabled so the user can still click GUARDAR and the backend will
+  // validate class_id with a clear 404/error message if missing)
   classSelect.innerHTML = '<option value="">CARGANDO CLASES...</option>';
   classSelect.disabled = true;
-  submitBtn.disabled = true;
 
   if (!courseId || !subjectId || !period) {
     classSelect.innerHTML = '<option value="">SELECCIONA UN PERIODO</option>';
@@ -66,7 +67,6 @@ async function loadAvailableClassesForResourceModal() {
     });
 
     classSelect.disabled = false;
-    submitBtn.disabled = false;
   } catch (e) {
     classSelect.innerHTML = '<option value="">ERROR AL CARGAR CLASES</option>';
   }
