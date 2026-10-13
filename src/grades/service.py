@@ -10,6 +10,7 @@ from ..models.evaluation_submission import EvaluationSubmission
 from ..models.grade import Grade
 from ..models.subject import Subject
 from ..models.user import User
+from src.courses.service import COURSE_NAME_ORDER
 
 
 def grade_to_dict(grade: Grade) -> dict:
@@ -47,7 +48,6 @@ def get_courses_with_students_service(
             db.query(Course, CourseStudent, User)
             .outerjoin(CourseStudent, CourseStudent.course_id == Course.id)
             .outerjoin(User, User.id == CourseStudent.student_id)
-            .order_by(Course.name.desc())
             .all()
         )
 
@@ -76,7 +76,9 @@ def get_courses_with_students_service(
         for course in courses_by_id.values():
             course["students"].sort(key=lambda s: s["full_name"] or "")
 
-        return [courses_by_id[cid] for cid in course_order], 200
+        courses_list = [courses_by_id[cid] for cid in course_order]
+        courses_list.sort(key=lambda c: COURSE_NAME_ORDER.get(c["name"], 999))
+        return courses_list, 200
     except Exception as e:
         import traceback
 

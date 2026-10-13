@@ -11,6 +11,7 @@ from ..models.evaluation import Evaluation
 from ..models.evaluation_question import EvaluationQuestion, QuestionType
 from ..models.evaluation_question_option import EvaluationQuestionOption
 from ..models.subject import Subject
+from src.courses.service import COURSE_NAME_ORDER
 
 
 def evaluation_to_dict(evaluation):
@@ -358,13 +359,6 @@ def get_all_courses_with_subjects_for_evaluations():
 
         courses_data = [courses_by_id[cid] for cid in course_order]
 
-        COURSE_NAME_ORDER = {
-            "Sexto": 6,
-            "Séptimo": 7,
-            "Octavo": 8,
-            "Noveno": 9,
-            "Décimo": 10,
-        }
         courses_data.sort(key=lambda c: COURSE_NAME_ORDER.get(c["name"], 999))
 
         return courses_data, 200
