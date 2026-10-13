@@ -4,7 +4,7 @@
     <div class="container">
         <i class="closed close-modal">X</i>
         <h2>Crear materia</h2>
-        <form method="POST" action="{{ url_for('subjects.create_subject') }}" id="createSubjectForm" class="needs-validation" novalidate>
+        <form method="POST" action="{{ url_for('subjects.create_subject') }}" id="createSubjectForm" class="needs-validation" novalidate enctype="multipart/form-data">
             <input type="hidden" name="course_id" value="{{ course_id or '' }}" id="subjectCourseId">
             <div class="mb-3">
                 <label for="subject-name" class="form-label">Nombre de la materia</label>
@@ -29,6 +29,11 @@
                     {% endif %}
                 </select>
                 <div class="invalid-feedback">Por favor seleccione un profesor.</div>
+            </div>
+            <div class="mb-3">
+                <label for="subject_image" class="form-label">Imagen de portada</label>
+                <input class="form-control" type="file" id="subject_image" name="subject_image" accept="image/*">
+                <div class="form-text">Opcional. Selecciona una imagen para la portada de la materia.</div>
             </div>
             <div class="btns">
                 <button type="submit" class="btn btn-primary" id="submitSubjectBtn">Guardar</button>
