@@ -15,7 +15,7 @@
 
 {% include "flash_messages.html" %}
 
-<div class="container_category flex">
+<div class="container_category flex grades_students">
     <!-- Inicio Estudiantes -->
     <div class="specialities_category cursos grades flex flex-column">
         <!-- Header con número de grado y título -->
@@ -34,10 +34,10 @@
                 <thead>
                     <tr>
                         <th>Nombre</th>
-                        <th>Documento</th>
+                        <th class="d-none d-md-table-cell ">Documento</th>
                         <th>Tareas</th>
                         <th>Evaluaciones</th>
-                        <th>Acciones</th>
+                        <th class="d-none d-md-table-cell">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -45,16 +45,16 @@
                         {% for student in students %}
                             <tr data-student-id="{{ student.id }}">
                                 <td>{{ student.full_name }}</td>
-                                <td>{{ student.document }}</td>
+                                <td class="d-none d-md-table-cell">{{ student.document }}</td>
                                 <td>
-                                    <a href="{{ url_for('users.student_tasks', course_id=course.id, student_id=student.id) }}" 
-                                    class="view-link-btn">
+                                    <a href="{{ url_for('users.student_tasks', course_id=course.id, student_id=student.id) }}"
+                                    class="view-link-btn" style="margin-left: 2rem;">
                                         Ir
                                     </a>
                                 </td>
                                 <td>
-                                    <a href="{{ url_for('users.student_evaluations', course_id=course.id, student_id=student.id) }}" 
-                                    class="view-link-btn">
+                                    <a href="{{ url_for('users.student_evaluations', course_id=course.id, student_id=student.id) }}"
+                                    class="view-link-btn" style="margin-left: 2rem;">
                                         Ir
                                     </a>
                                 </td>
