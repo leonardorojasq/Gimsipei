@@ -17,7 +17,7 @@ from .validation import SubjectCreateSchema, SubjectUpdateSchema
 
 
 @jwt_required()
-@role_required([UserRole.ADMIN])
+@role_required([UserRole.ADMIN, UserRole.TEACHER])
 def create_subject_controller(request: Request) -> Response:
     """View to create a new subject"""
     if request.method == "GET":
@@ -112,7 +112,7 @@ def create_subject_controller(request: Request) -> Response:
 
 
 @jwt_required()
-@role_required([UserRole.ADMIN])
+@role_required([UserRole.ADMIN, UserRole.TEACHER])
 def edit_subject_controller(subject_id: int, request: Request) -> Response:
     """View to edit a subject"""
     if request.method == "GET":
@@ -143,7 +143,7 @@ def edit_subject_controller(subject_id: int, request: Request) -> Response:
 
 
 @jwt_required()
-@role_required([UserRole.ADMIN])
+@role_required([UserRole.ADMIN, UserRole.TEACHER])
 def delete_subject_controller(subject_id: int, request: Request) -> Response:
     """Delete a subject"""
     try:
