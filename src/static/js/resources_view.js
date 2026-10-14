@@ -8,6 +8,34 @@ document.addEventListener("DOMContentLoaded", function () {
   initializeLoadingStates();
 });
 
+// Capture the original (function-declared) implementations in locals BEFORE
+// any window.* re-assignment, so the wrapper functions can dispatch to the
+// real implementation without recursively calling themselves. (A direct
+// `window.openCreateResourceModal = function(){ return openCreateResourceModal(); }`
+// would shadow the original global binding and recurse infinitely.)
+const _openCreateResourceModalImpl = openCreateResourceModal;
+const _closeCreateResourceModalImpl = closeCreateResourceModal;
+const _loadAvailableClassesForResourceModalImpl = loadAvailableClassesForResourceModal;
+
+// Re-export to window so inline onclick handlers in the template (and any
+// other script that may have shadowed these globals) always call this
+// fully-featured version that loads classes via /api/classes.
+window.openCreateResourceModal = function (subjectId = null, period = null) {
+  return _openCreateResourceModalImpl(subjectId, period);
+};
+window.closeCreateResourceModal = function () {
+  return _closeCreateResourceModalImpl();
+};
+window.loadAvailableClassesForResourceModal = function () {
+  return _loadAvailableClassesForResourceModalImpl();
+};
+
+// Module-scoped AbortController so concurrent calls to
+// loadAvailableClassesForResourceModal cancel any in-flight request —
+// prevents a slow earlier response from overwriting a newer one and
+// leaving the select showing stale data.
+let _loadClassesInflight = null;
+
 async function loadAvailableClassesForResourceModal() {
   const courseId = document.getElementById("resource_course_id")?.value;
   const subjectId = document.getElementById("resource_subject_id")?.value;
@@ -21,14 +49,27 @@ async function loadAvailableClassesForResourceModal() {
   );
   if (!classSelect || !submitBtn) return;
 
-  // Reset UI state (only the select is locked while loading; the submit button
-  // stays enabled so the user can still click GUARDAR and the backend will
-  // validate class_id with a clear 404/error message if missing)
-  classSelect.innerHTML = '<option value="">CARGANDO CLASES...</option>';
-  classSelect.disabled = true;
+  // Cancel any in-flight request before starting a new one
+  if (_loadClassesInflight) {
+    try { _loadClassesInflight.abort(); } catch (e) { /* noop */ }
+  }
+  const inflight = new AbortController();
+  _loadClassesInflight = inflight;
 
-  if (!courseId || !subjectId || !period) {
-    classSelect.innerHTML = '<option value="">SELECCIONA UN PERIODO</option>';
+  // While loading, show a loading state on the select (without disabling it:
+  // we want the user to always be able to submit; the backend will validate
+  // the class_id and return a clear error if missing).
+  classSelect.innerHTML = '<option value="">CARGANDO CLASES...</option>';
+
+  if (!courseId || !subjectId) {
+    classSelect.innerHTML = '<option value="">PRIMERO SELECCIONA UN PERIODO</option>';
+    _loadClassesInflight = null;
+    return;
+  }
+
+  if (!period) {
+    classSelect.innerHTML = '<option value="">PRIMERO SELECCIONA UN PERIODO</option>';
+    _loadClassesInflight = null;
     return;
   }
 
@@ -39,6 +80,7 @@ async function loadAvailableClassesForResourceModal() {
         method: "GET",
         credentials: "same-origin",
         headers: { Accept: "application/json" },
+        signal: inflight.signal,
       },
     );
 
@@ -48,12 +90,14 @@ async function loadAvailableClassesForResourceModal() {
     if (!response.ok || payload?.success === false) {
       classSelect.innerHTML =
         '<option value="">ERROR AL CARGAR CLASES</option>';
+      _loadClassesInflight = null;
       return;
     }
 
     if (!items.length) {
       classSelect.innerHTML =
         '<option value="">NO HAY CLASES EN ESTE PERIODO</option>';
+      _loadClassesInflight = null;
       return;
     }
 
@@ -65,10 +109,15 @@ async function loadAvailableClassesForResourceModal() {
       opt.textContent = `CLASE ${item.class_number}${item.title ? ` - ${item.title}` : ""}`;
       classSelect.appendChild(opt);
     });
-
-    classSelect.disabled = false;
+    _loadClassesInflight = null;
   } catch (e) {
+    if (e.name === "AbortError") {
+      // A newer request superseded us — leave the select as-is, the newer
+      // call will populate it.
+      return;
+    }
     classSelect.innerHTML = '<option value="">ERROR AL CARGAR CLASES</option>';
+    _loadClassesInflight = null;
   }
 }
 
@@ -110,25 +159,36 @@ function openCreateResourceModal(subjectId = null, period = null) {
 
   modal.style.display = "flex";
 
-  // Obtener datos del primer subject-section visible si no se pasaron
-  const subjectSection = subjectId
-    ? document.querySelector(`.subject-section[data-subject-id="${subjectId}"]`)
+  // Read course_id and subject_id from URL query params first (so the modal
+  // works when opened from /resources?course_id=29&subject_id=42).
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlCourseId = urlParams.get("course_id");
+  const urlSubjectId = urlParams.get("subject_id");
+
+  const subjectSection = subjectId || urlSubjectId
+    ? document.querySelector(`.subject-section[data-subject-id="${subjectId || urlSubjectId}"]`)
     : document.querySelector(".subject-section");
 
   if (subjectSection) {
     const courseId = subjectSection.getAttribute("data-course-id");
     const actualSubjectId =
-      subjectId || subjectSection.getAttribute("data-subject-id");
+      subjectId || urlSubjectId || subjectSection.getAttribute("data-subject-id");
 
-    // Configurar campos ocultos
     const courseIdInput = document.getElementById("resource_course_id");
     const subjectIdInput = document.getElementById("resource_subject_id");
 
-    if (courseIdInput) courseIdInput.value = courseId || "";
+    if (courseIdInput) courseIdInput.value = courseId || urlCourseId || "";
     if (subjectIdInput) subjectIdInput.value = actualSubjectId || "";
+  } else if (urlCourseId || urlSubjectId) {
+    // URL has course_id/subject_id but there's no matching subject-section in
+    // the DOM. Use the URL values directly.
+    const courseIdInput = document.getElementById("resource_course_id");
+    const subjectIdInput = document.getElementById("resource_subject_id");
+    if (courseIdInput) courseIdInput.value = urlCourseId || "";
+    if (subjectIdInput) subjectIdInput.value = urlSubjectId || "";
   }
 
-  // Configurar periodo
+  // Configure period: explicit arg > active period button > empty
   const periodSelect = document.querySelector(
     '#createResourceModal select[name="period"]',
   );
@@ -141,7 +201,7 @@ function openCreateResourceModal(subjectId = null, period = null) {
       "";
   }
 
-  // Cargar clases disponibles para el periodo/curso/materia
+  // Load available classes for the period/course/subject
   loadAvailableClassesForResourceModal();
 }
 
@@ -166,7 +226,6 @@ function closeCreateResourceModal() {
   );
   if (classSelect) {
     classSelect.innerHTML = '<option value="">SELECCIONA UNA CLASE</option>';
-    classSelect.disabled = true;
   }
   if (submitBtn) submitBtn.disabled = false;
 }
