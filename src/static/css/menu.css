@@ -399,25 +399,25 @@ a {
   position: relative;
 }
 
-.mobile-header:has(+ .teachers_management),
-.mobile-header:has(+ .courses_management),
-.mobile-header:has(+ .libros_category),
-.mobile-header:has(+ .calificaciones_category),
-.mobile-header:has(+ .evaluaciones_category),
-.mobile-header:has(+ .clases_category),
-.mobile-header:has(+ .admin_category),
-.mobile-header:has(+ .recursos_category) {
+.mobile-header:has(~ .teachers_management),
+.mobile-header:has(~ .courses_management),
+.mobile-header:has(~ .libros_category),
+.mobile-header:has(~ .calificaciones_category),
+.mobile-header:has(~ .evaluaciones_category),
+.mobile-header:has(~ .clases_category),
+.mobile-header:has(~ .admin_category),
+.mobile-header:has(~ .recursos_category) {
   background-color: white;
 }
 
-.mobile-header:has(+ .teachers_management):after,
-.mobile-header:has(+ .courses_management):after,
-.mobile-header:has(+ .libros_category):after,
-.mobile-header:has(+ .calificaciones_category):after,
-.mobile-header:has(+ .evaluaciones_category):after,
-.mobile-header:has(+ .clases_category):after,
-.mobile-header:has(+ .admin_category):after,
-.mobile-header:has(+ .recursos_category):after {
+.mobile-header:has(~ .teachers_management):after,
+.mobile-header:has(~ .courses_management):after,
+.mobile-header:has(~ .libros_category):after,
+.mobile-header:has(~ .calificaciones_category):after,
+.mobile-header:has(~ .evaluaciones_category):after,
+.mobile-header:has(~ .clases_category):after,
+.mobile-header:has(~ .admin_category):after,
+.mobile-header:has(~ .recursos_category):after {
   content: "";
   height: 2px;
   border-radius: 5px;
@@ -429,91 +429,91 @@ a {
   bottom: 0px;
 }
 
-.mobile-header:has(+ .teachers_management):after,
-.mobile-header:has(+ .courses_management):after {
+.mobile-header:has(~ .teachers_management):after,
+.mobile-header:has(~ .courses_management):after {
   background: var(--admin-active);
 }
 
-.mobile-header:has(+ .teachers_management) .logo,
-.mobile-header:has(+ .courses_management) .logo,
-.mobile-header:has(+ .libros_category) .logo,
-.mobile-header:has(+ .calificaciones_category) .logo,
-.mobile-header:has(+ .evaluaciones_category) .logo,
-.mobile-header:has(+ .clases_category) .logo,
-.mobile-header:has(+ .admin_category) .logo,
-.mobile-header:has(+ .recursos_category) .logo {
+.mobile-header:has(~ .teachers_management) .logo,
+.mobile-header:has(~ .courses_management) .logo,
+.mobile-header:has(~ .libros_category) .logo,
+.mobile-header:has(~ .calificaciones_category) .logo,
+.mobile-header:has(~ .evaluaciones_category) .logo,
+.mobile-header:has(~ .clases_category) .logo,
+.mobile-header:has(~ .admin_category) .logo,
+.mobile-header:has(~ .recursos_category) .logo {
   background-image: url("../images/iconos/logo-gris.png");
   background-size: contain;
 }
 
-.mobile-header:has(+ .teachers_management) .hamburger-menu span,
-.mobile-header:has(+ .courses_management) .hamburger-menu span,
-.mobile-header:has(+ .libros_category) .hamburger-menu span,
-.mobile-header:has(+ .calificaciones_category) .hamburger-menu span,
-.mobile-header:has(+ .evaluaciones_category) .hamburger-menu span,
-.mobile-header:has(+ .clases_category) .hamburger-menu span,
-.mobile-header:has(+ .admin_category) .hamburger-menu span,
-.mobile-header:has(+ .recursos_category) .hamburger-menu span {
+.mobile-header:has(~ .teachers_management) .hamburger-menu span,
+.mobile-header:has(~ .courses_management) .hamburger-menu span,
+.mobile-header:has(~ .libros_category) .hamburger-menu span,
+.mobile-header:has(~ .calificaciones_category) .hamburger-menu span,
+.mobile-header:has(~ .evaluaciones_category) .hamburger-menu span,
+.mobile-header:has(~ .clases_category) .hamburger-menu span,
+.mobile-header:has(~ .admin_category) .hamburger-menu span,
+.mobile-header:has(~ .recursos_category) .hamburger-menu span {
   background-color: gray;
 }
 
-.mobile-header:has(+ .teachers_management) .mobile-nav,
-.mobile-header:has(+ .courses_management) .mobile-nav,
-.mobile-header:has(+ .libros_category) .mobile-nav,
-.mobile-header:has(+ .calificaciones_category) .mobile-nav,
-.mobile-header:has(+ .evaluaciones_category) .mobile-nav,
-.mobile-header:has(+ .clases_category) .mobile-nav,
-.mobile-header:has(+ .admin_category) .mobile-nav,
-.mobile-header:has(+ .recursos_category) .mobile-nav {
+.mobile-header:has(~ .teachers_management) .mobile-nav,
+.mobile-header:has(~ .courses_management) .mobile-nav,
+.mobile-header:has(~ .libros_category) .mobile-nav,
+.mobile-header:has(~ .calificaciones_category) .mobile-nav,
+.mobile-header:has(~ .evaluaciones_category) .mobile-nav,
+.mobile-header:has(~ .clases_category) .mobile-nav,
+.mobile-header:has(~ .admin_category) .mobile-nav,
+.mobile-header:has(~ .recursos_category) .mobile-nav {
   background-color: white;
 }
 
-.mobile-header:has(+ .teachers_management) .mobile-nav a,
-.mobile-header:has(+ .courses_management) .mobile-nav a,
-.mobile-header:has(+ .libros_category) .mobile-nav a,
-.mobile-header:has(+ .calificaciones_category) .mobile-nav a,
-.mobile-header:has(+ .evaluaciones_category) .mobile-nav a,
-.mobile-header:has(+ .clases_category) .mobile-nav a,
-.mobile-header:has(+ .admin_category) .mobile-nav a,
-.mobile-header:has(+ .recursos_category) .mobile-nav a {
+.mobile-header:has(~ .teachers_management) .mobile-nav a,
+.mobile-header:has(~ .courses_management) .mobile-nav a,
+.mobile-header:has(~ .libros_category) .mobile-nav a,
+.mobile-header:has(~ .calificaciones_category) .mobile-nav a,
+.mobile-header:has(~ .evaluaciones_category) .mobile-nav a,
+.mobile-header:has(~ .clases_category) .mobile-nav a,
+.mobile-header:has(~ .admin_category) .mobile-nav a,
+.mobile-header:has(~ .recursos_category) .mobile-nav a {
   color: gray;
 }
 
-.mobile-header:has(+ .teachers_management) .mobile-nav a:hover,
-.mobile-header:has(+ .courses_management) .mobile-nav a:hover,
-.mobile-header:has(+ .libros_category) .mobile-nav a:hover,
-.mobile-header:has(+ .calificaciones_category) .mobile-nav a:hover,
-.mobile-header:has(+ .evaluaciones_category) .mobile-nav a:hover,
-.mobile-header:has(+ .recursos_category) .mobile-nav a:hover {
+.mobile-header:has(~ .teachers_management) .mobile-nav a:hover,
+.mobile-header:has(~ .courses_management) .mobile-nav a:hover,
+.mobile-header:has(~ .libros_category) .mobile-nav a:hover,
+.mobile-header:has(~ .calificaciones_category) .mobile-nav a:hover,
+.mobile-header:has(~ .evaluaciones_category) .mobile-nav a:hover,
+.mobile-header:has(~ .recursos_category) .mobile-nav a:hover {
   background-color: var(--azul-oscuro);
   color: white;
 }
 
-.mobile-header:has(+ .admin_category) .mobile-nav a:hover {
+.mobile-header:has(~ .admin_category) .mobile-nav a:hover {
   background-color: var(--admin-active);
   color: white;
 }
 
-.mobile-header:has(+ .admin_category .form-crear) .mobile-nav a:hover{
+.mobile-header:has(~ .admin_category .form-crear) .mobile-nav a:hover{
   background-color: var(--barra-ginsipei);
   color: white;
 }
-.mobile-header:has(+ .admin_category.teachers_management) .mobile-nav a:hover{
+.mobile-header:has(~ .admin_category.teachers_management) .mobile-nav a:hover{
   background-color: var(--admin-active);
   color: white;
 }
-.mobile-header:has(+ .clases_category) .mobile-nav a:hover {
+.mobile-header:has(~ .clases_category) .mobile-nav a:hover {
   background-color: var(--barra-clases);
   color: white;
 }
-.mobile-header:has(+ .container_datos_personales.clases_category)
+.mobile-header:has(~ .container_datos_personales.clases_category)
   .mobile-nav
   a:hover {
   background-color: var(--azul-oscuro);
   color: white;
 }
 
-.mobile-header:has(+ .evaluaciones_category) .mobile-nav a:hover {
+.mobile-header:has(~ .evaluaciones_category) .mobile-nav a:hover {
   background-color: var(--evaluaciones-active);
   color: white;
 }
@@ -530,7 +530,7 @@ a {
   border-radius: 50px;
 }
 
-.mobile-header:has(+ .recursos_category) .mobile-nav a:hover {
+.mobile-header:has(~ .recursos_category) .mobile-nav a:hover {
   background-color: var(--recursos-active);
   color: white;
 }
@@ -547,7 +547,7 @@ a {
   border-radius: 50px;
 }
 
-.mobile-header:has(+ .libros_category) .mobile-nav a:hover {
+.mobile-header:has(~ .libros_category) .mobile-nav a:hover {
   background-color: var(--libros-active);
   color: white;
 }
@@ -564,7 +564,7 @@ a {
   border-radius: 50px;
 }
 
-.mobile-header:has(+ .calificaciones_category) .mobile-nav a:hover {
+.mobile-header:has(~ .calificaciones_category) .mobile-nav a:hover {
   background-color: var(--calificaciones-active);
   color: white;
 }
@@ -581,31 +581,31 @@ a {
   border-radius: 50px;
 }
 
-.mobile-header:has(+ .libros_category):after {
+.mobile-header:has(~ .libros_category):after {
   background: var(--libros-active);
 }
 
-.mobile-header:has(+ .calificaciones_category):after {
+.mobile-header:has(~ .calificaciones_category):after {
   background: var(--calificaciones-active);
 }
 
-.mobile-header:has(+ .evaluaciones_category):after {
+.mobile-header:has(~ .evaluaciones_category):after {
   background: var(--evaluaciones-active);
 }
-.mobile-header:has(+ .admin_category):after {
+.mobile-header:has(~ .admin_category):after {
   background: var(--admin-active);
 }
-.mobile-header:has(+ .admin_category .form-crear):after {
+.mobile-header:has(~ .admin_category .form-crear):after {
   background: var(--barra-ginsipei);
 }
-.mobile-header:has(+ .admin_category.teachers_management):after{
+.mobile-header:has(~ .admin_category.teachers_management):after{
   background: var(--admin-active);
 }
-.mobile-header:has(+ .clases_category):after {
+.mobile-header:has(~ .clases_category):after {
   background: var(--barra-clases);
 }
 
-.mobile-header:has(+ .container_datos_personales.clases_category):after {
+.mobile-header:has(~ .container_datos_personales.clases_category):after {
   background: var(--azul-oscuro);
 }
 
@@ -620,7 +620,7 @@ a {
   border-radius: 50px;
 }
 
-.mobile-header:has(+ .recursos_category):after {
+.mobile-header:has(~ .recursos_category):after {
   background: var(--recursos-active);
 }
 
