@@ -12,6 +12,8 @@ from src.models.course_subject import CourseSubject
 from src.models.resource import Resource, ResourceType
 from src.models.subject import Subject
 from src.models.user import User
+from src.utils.app_logger import logger
+from src.utils.file_utils import make_unique_filename, path_from_static_url, safe_remove_file
 
 
 def get_resources_by_student_service(student_id: int) -> tuple[dict | None, int]:
@@ -413,17 +415,16 @@ def create_resource_service(
         # Procesar archivo de portada si existe
         cover_image_path = None
         if cover_file and cover_file.filename:
-            filename = secure_filename(cover_file.filename)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"{timestamp}_{filename}"
-
-            # Crear directorio si no existe
+            # Use microsecond precision + collision-suffix so two
+            # uploads in the same second (or with the same original
+            # filename) never overwrite each other on disk.
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            filename = f"{timestamp}_{secure_filename(cover_file.filename)}"
             upload_folder = os.path.join(
                 "src", "static", "uploads", "resources", "covers"
             )
             os.makedirs(upload_folder, exist_ok=True)
-
-            # Guardar archivo
+            filename = make_unique_filename(upload_folder, filename)
             file_path = os.path.join(upload_folder, filename)
             cover_file.save(file_path)
             cover_image_path = f"/static/uploads/resources/covers/{filename}"
@@ -433,15 +434,13 @@ def create_resource_service(
         resource_type = ResourceType.FILE
 
         if resource_file and resource_file.filename:
-            filename = secure_filename(resource_file.filename)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"{timestamp}_{filename}"
-
-            # Guardar archivo (todos los tipos van al mismo lugar)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            filename = f"{timestamp}_{secure_filename(resource_file.filename)}"
             upload_folder = os.path.join(
                 "src", "static", "uploads", "resources", "files"
             )
             os.makedirs(upload_folder, exist_ok=True)
+            filename = make_unique_filename(upload_folder, filename)
             file_path = os.path.join(upload_folder, filename)
             resource_file.save(file_path)
             file_url = f"/static/uploads/resources/files/{filename}"
@@ -499,36 +498,37 @@ def update_resource_service(
 
         # Procesar nueva portada si existe
         if cover_file and cover_file.filename:
-            filename = secure_filename(cover_file.filename)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"{timestamp}_{filename}"
+            # Remove the old cover file BEFORE saving the new one, so
+            # even if the save fails later the previous one is gone
+            # (consistent with how file_url is handled below).
+            if resource.cover_image:
+                old_cover = path_from_static_url(resource.cover_image)
+                safe_remove_file(old_cover)
 
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            filename = f"{timestamp}_{secure_filename(cover_file.filename)}"
             upload_folder = os.path.join(
                 "src", "static", "uploads", "resources", "covers"
             )
             os.makedirs(upload_folder, exist_ok=True)
-
+            filename = make_unique_filename(upload_folder, filename)
             file_path = os.path.join(upload_folder, filename)
             cover_file.save(file_path)
             resource.cover_image = f"/static/uploads/resources/covers/{filename}"
 
         # Procesar nuevo archivo de recurso si existe
         if resource_file and resource_file.filename:
-            filename = secure_filename(resource_file.filename)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"{timestamp}_{filename}"
-
-            # Eliminar archivo anterior si existe
             if resource.file_url:
-                old_file_path = os.path.join("src", resource.file_url.lstrip("/"))
-                if os.path.exists(old_file_path):
-                    os.remove(old_file_path)
+                old_file_path = path_from_static_url(resource.file_url)
+                safe_remove_file(old_file_path)
 
-            # Guardar nuevo archivo
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            filename = f"{timestamp}_{secure_filename(resource_file.filename)}"
             upload_folder = os.path.join(
                 "src", "static", "uploads", "resources", "files"
             )
             os.makedirs(upload_folder, exist_ok=True)
+            filename = make_unique_filename(upload_folder, filename)
             file_path = os.path.join(upload_folder, filename)
             resource_file.save(file_path)
             resource.file_url = f"/static/uploads/resources/files/{filename}"
@@ -556,30 +556,50 @@ def update_resource_service(
 def delete_resource_service(
     resource_id: int, request: Request
 ) -> tuple[dict | None, int]:
-    """Eliminar un recurso"""
+    """Eliminar un recurso.
+
+    Delete order: DB row first, then physical files. If the commit
+    fails the record stays (consistent) and the files remain on disk
+    (orphan but recoverable). If file removal fails the record is
+    already gone; the file becomes orphan and is logged so it can be
+    reaped later by the orphan-cleanup utility.
+    """
     db = SessionLocal()
     try:
         resource = db.query(Resource).filter(Resource.id == resource_id).first()
         if not resource:
             return None, 404
 
-        # Eliminar archivos físicos si existen
-        if resource.cover_image:
-            cover_path = os.path.join("src", resource.cover_image.lstrip("/"))
-            if os.path.exists(cover_path):
-                os.remove(cover_path)
-
-        if resource.file_url:
-            file_path = os.path.join("src", resource.file_url.lstrip("/"))
-            if os.path.exists(file_path):
-                os.remove(file_path)
+        # Capture paths BEFORE deleting the row
+        cover_path = path_from_static_url(resource.cover_image)
+        file_path = path_from_static_url(resource.file_url)
+        title_for_log = resource.title
 
         db.delete(resource)
         db.commit()
 
+        # Files only get removed once the DB delete has committed
+        removed_cover = safe_remove_file(cover_path)
+        removed_file = safe_remove_file(file_path)
+        if not removed_cover and cover_path:
+            logger.error(
+                "Resource %s deleted from DB but cover file remained on disk: %s",
+                resource_id, cover_path,
+            )
+        if not removed_file and file_path:
+            logger.error(
+                "Resource %s deleted from DB but file remained on disk: %s",
+                resource_id, file_path,
+            )
+        logger.info(
+            "Resource %r (id=%s) deleted (cover_removed=%s file_removed=%s)",
+            title_for_log, resource_id, removed_cover, removed_file,
+        )
+
         return {"message": "Recurso eliminado exitosamente"}, 200
-    except Exception:
+    except Exception as exc:
         db.rollback()
+        logger.critical("Unhandled exception in delete_resource_service: %s", exc)
         return None, 500
     finally:
         db.close()
