@@ -7,6 +7,7 @@ from src.grades.router import grades_bp
 from src.resources.router import resources_bp
 from src.subject.router import subjects_bp
 from src.users.router import users_bp
+from src.utils.uploads_routes import uploads_bp
 
 
 def register_blueprints(app):
@@ -19,3 +20,4 @@ def register_blueprints(app):
     app.register_blueprint(evaluations_bp)
     app.register_blueprint(subjects_bp)
     app.register_blueprint(grades_bp)
+    app.register_blueprint(uploads_bp)
