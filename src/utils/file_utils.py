@@ -1,125 +1,67 @@
+"""Filesystem helpers for the upload pipeline.
+
+These wrappers centralize the path-resolution + os.remove logic that
+delete services use, so the rules are consistent and every failure is
+logged to the central app logger.
+"""
 import os
-import uuid
 
-from werkzeug.utils import secure_filename
-
-# Directories for file storage
-BOOKS_DIR = "src/static/books"
-COVERS_DIR = "src/static/covers"
-os.makedirs(BOOKS_DIR, exist_ok=True)
-os.makedirs(COVERS_DIR, exist_ok=True)
-
-# Allowed file extensions
-ALLOWED_EXTENSIONS = {
-    "book": ["epub"],
-    "cover": ["jpg", "jpeg", "png", "webp"],
-    "document": ["pdf", "doc", "docx"],
-}
+from src.utils.app_logger import logger
 
 
-def save_file(file, file_type):
-    """
-    Save a file in the appropriate directory according to its type.
-
-    Args:
-        file: The Flask file object
-        file_type: File type ('book', 'cover', etc.)
-
-    Returns:
-        The path of the saved file
-
-    Raises:
-        ValueError: If the file is invalid or the type is not supported
-    """
-    if file_type == "book":
-        return save_file_locally(file, BOOKS_DIR, ALLOWED_EXTENSIONS["book"])
-    elif file_type == "cover":
-        return save_file_locally(file, COVERS_DIR, ALLOWED_EXTENSIONS["cover"])
-    else:
-        raise ValueError(f"Tipo de archivo no soportado: {file_type}")
-
-
-def save_file_locally(file, folder, allowed_exts):
-    """
-    Save a file securely in the local file system
-
-    Args:
-        file: The Flask file object
-        folder: Directory where to save the file
-        allowed_exts: List of allowed extensions
-
-    Returns:
-        The path of the saved file
-
-    Raises:
-        ValueError: If the file is invalid or its extension is not allowed
-    """
-    if not file or not hasattr(file, "filename") or not file.filename:
-        raise ValueError("Archivo no válido o vacío")
-
-    filename = secure_filename(file.filename)
-    if not filename:
-        raise ValueError("Nombre de archivo no válido")
-
-    # Check the extension
-    ext = os.path.splitext(filename)[1].lower().replace(".", "")
-    if not ext:
-        raise ValueError("Archivo sin extensión válida")
-
-    if ext not in allowed_exts:
-        raise ValueError(
-            f"Formato no permitido: {ext}. Formatos permitidos: {', '.join(allowed_exts)}"
-        )
-
-    # Generate a unique filename to avoid overwrites
-    unique_filename = f"{uuid.uuid4()}_{filename}"
-    file_path = os.path.join(folder, unique_filename)
-
-    # Save the file securely
+def safe_remove_file(file_path: str | None) -> bool:
+    """Remove a file at *file_path*, swallowing FileNotFoundError but
+    logging any other failure. Returns True if the file was removed or
+    did not exist, False if the removal failed for a real reason
+    (permissions, file in use, etc.)."""
+    if not file_path:
+        return True
+    if not os.path.exists(file_path):
+        return True
     try:
-        file.save(file_path)
-        return file_path
-    except Exception as e:
-        if os.path.exists(file_path):
-            os.remove(file_path)  # Clean up partial file if failed
-        raise ValueError(f"Error al guardar el archivo: {str(e)}") from e
+        os.remove(file_path)
+        return True
+    except FileNotFoundError:
+        return True
+    except Exception as exc:
+        logger.error("Failed to remove file %s: %s", file_path, exc)
+        return False
 
 
-def delete_file(file_path):
+def path_from_static_url(static_url: str | None, base: str = "src") -> str | None:
+    """Resolve a /static/uploads/... URL to a filesystem path under *base*.
+
+    e.g. path_from_static_url("/static/uploads/resources/covers/x.png")
+         → "src/static/uploads/resources/covers/x.png"
+
+    Returns None if the input is empty/None. The /static prefix is
+    stripped before joining, and a leading slash is also stripped so
+    that os.path.join doesn't discard the *base* prefix.
     """
-    Delete a file from the file system
+    if not static_url or not isinstance(static_url, str):
+        return None
+    stripped = static_url.lstrip("/")
+    if not stripped:
+        return None
+    return os.path.join(base, stripped)
 
-    Args:
-        file_path: Path to the file to delete
 
-    Returns:
-        bool: True if the file was deleted, False if it did not exist or there was an error
+def make_unique_filename(folder: str, filename: str) -> str:
+    """Return a filename that does not yet exist in *folder*.
+
+    If *filename* already exists, appends "_1", "_2", ... before the
+    extension until a free slot is found. The first attempt is the
+    unchanged input, so when there's no collision the original
+    filename is returned (and the timestamp/microsecond prefix still
+    gives the second-precision uniqueness that the upstream code
+    relies on for human-readable names).
     """
-    if file_path and os.path.exists(file_path):
-        try:
-            os.remove(file_path)
-            return True
-        except Exception as e:
-            print(f"Error deleting file {file_path}: {str(e)}")
-    return False
-
-
-def update_file(old_file_path, new_file, file_type):
-    """
-    Update a file: save the new one and delete the old one
-
-    Args:
-        old_file_path: Path to the old file
-        new_file: New file object
-        file_type: File type ('book', 'cover', etc.)
-
-    Returns:
-        The path of the saved new file
-    """
-    # Save the new file
-    new_file_path = save_file(new_file, file_type)
-
-    # Delete the old file
-    delete_file(old_file_path)
-
-    return new_file_path
+    if not os.path.exists(os.path.join(folder, filename)):
+        return filename
+    base, ext = os.path.splitext(filename)
+    counter = 1
+    while True:
+        candidate = f"{base}_{counter}{ext}"
+        if not os.path.exists(os.path.join(folder, candidate)):
+            return candidate
+        counter += 1
