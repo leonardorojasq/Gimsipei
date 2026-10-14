@@ -24,6 +24,12 @@ from src.models.course_subject import CourseSubject
 from src.models.resource import Resource
 from src.models.subject import Subject
 from src.models.user import User, UserRole
+from src.utils.app_logger import logger
+from src.utils.file_utils import (
+    make_unique_filename,
+    path_from_static_url,
+    safe_remove_file,
+)
 
 
 # Subject Services
@@ -208,7 +214,7 @@ def create_class_service(data: dict, cover_file=None, created_by_user_id=None):
         cover_image_path = None
         if cover_file and cover_file.filename:
             filename = secure_filename(cover_file.filename)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
             filename = f"{timestamp}_{filename}"
 
             # Crear directorio si no existe
@@ -216,6 +222,8 @@ def create_class_service(data: dict, cover_file=None, created_by_user_id=None):
             os.makedirs(upload_folder, exist_ok=True)
 
             # Guardar archivo
+            file_path = os.path.join(upload_folder, filename)
+            filename = make_unique_filename(upload_folder, filename)
             file_path = os.path.join(upload_folder, filename)
             cover_file.save(file_path)
             cover_image_path = f"/static/uploads/classes/{filename}"
@@ -284,7 +292,7 @@ def create_resource_service(data: dict, resource_file=None):
 
         if resource_file and resource_file.filename:
             filename = secure_filename(resource_file.filename)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
             filename = f"{timestamp}_{filename}"
 
             # Determinar tipo de archivo
@@ -312,6 +320,8 @@ def create_resource_service(data: dict, resource_file=None):
             os.makedirs(upload_folder, exist_ok=True)
 
             # Guardar archivo
+            file_path = os.path.join(upload_folder, filename)
+            filename = make_unique_filename(upload_folder, filename)
             file_path = os.path.join(upload_folder, filename)
             resource_file.save(file_path)
             file_path_str = f"/static/uploads/resources/{filename}"
@@ -499,12 +509,14 @@ def update_class_service(class_id: int, data: dict, cover_file=None):
 
             # Guardar nueva portada
             filename = secure_filename(cover_file.filename)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
             filename = f"{timestamp}_{filename}"
 
             upload_folder = os.path.join("src", "static", "uploads", "classes")
             os.makedirs(upload_folder, exist_ok=True)
 
+            file_path = os.path.join(upload_folder, filename)
+            filename = make_unique_filename(upload_folder, filename)
             file_path = os.path.join(upload_folder, filename)
             cover_file.save(file_path)
             class_to_update.cover_image = f"/static/uploads/classes/{filename}"
@@ -530,7 +542,7 @@ def update_class_service(class_id: int, data: dict, cover_file=None):
 
 def delete_class_service(class_id: int, user_role: str):
     """
-    Elimina una clase y su imagen de portada
+     Elimina una clase y su imagen de portada
 
     Args:
         class_id: ID de la clase a eliminar
@@ -553,6 +565,11 @@ def delete_class_service(class_id: int, user_role: str):
         # Save the image path before deleting the record
         cover_image_path = class_to_delete.cover_image
 
+        # Collect every file path that will need removing AFTER the DB commit.
+        # Mapping them now (before the cascade of DB deletes) is safe because
+        # we only read the path strings, we don't touch the files yet.
+        files_to_remove: list[tuple[str, str]] = []  # (label, path)
+
         # Delete related records first (to avoid integrity reference problems)
         assignments = db.query(Assignment).filter(Assignment.class_id == class_id).all()
         for assignment in assignments:
@@ -564,12 +581,9 @@ def delete_class_service(class_id: int, user_role: str):
             )
             for submission in submissions:
                 if submission.file_url:
-                    submission_file_path = os.path.join(
-                        "src", submission.file_url.lstrip("/")
+                    files_to_remove.append(
+                        ("submission_file", path_from_static_url(submission.file_url))
                     )
-                    if os.path.exists(submission_file_path):
-                        with contextlib.suppress(Exception):
-                            os.remove(submission_file_path)
                 db.delete(submission)
             db.delete(assignment)
 
@@ -579,32 +593,22 @@ def delete_class_service(class_id: int, user_role: str):
         )
         for content in contents:
             if content.content_image:
-                content_image_path = os.path.join(
-                    "src", content.content_image.lstrip("/")
+                files_to_remove.append(
+                    ("content_image", path_from_static_url(content.content_image))
                 )
-                if os.path.exists(content_image_path):
-                    with contextlib.suppress(Exception):
-                        os.remove(content_image_path)
             db.delete(content)
 
         # Delete resources
         resources = db.query(Resource).filter(Resource.class_id == class_id).all()
         for resource in resources:
-            # Delete physical files of the resource if they exist
             if resource.cover_image:
-                resource_cover_path = os.path.join(
-                    "src", resource.cover_image.lstrip("/")
+                files_to_remove.append(
+                    ("resource_cover", path_from_static_url(resource.cover_image))
                 )
-                if os.path.exists(resource_cover_path):
-                    with contextlib.suppress(Exception):
-                        os.remove(resource_cover_path)
-
             if resource.file_url:
-                resource_file_path = os.path.join("src", resource.file_url.lstrip("/"))
-                if os.path.exists(resource_file_path):
-                    with contextlib.suppress(Exception):
-                        os.remove(resource_file_path)
-
+                files_to_remove.append(
+                    ("resource_file", path_from_static_url(resource.file_url))
+                )
             db.delete(resource)
 
         # Delete associated views
@@ -612,25 +616,37 @@ def delete_class_service(class_id: int, user_role: str):
         for view in views:
             db.delete(view)
 
-        # Delete the class from the database
+        # Delete the class itself
         db.delete(class_to_delete)
         db.commit()
 
-        # Delete physical files after deleting the record
+        # ------------------------------------------------------------------
+        # Files only get removed once the DB delete has committed. If any
+        # file removal fails the path is logged to logs/errors.log so it
+        # can be reaped later by the orphan-cleanup utility.
+        # ------------------------------------------------------------------
+        for label, path in files_to_remove:
+            if path and not safe_remove_file(path):
+                logger.error(
+                    "Class %s deleted from DB but %s remained on disk: %s",
+                    class_id, label, path,
+                )
+
+        # Class cover image (separate from the loop above because it was
+        # captured on the class object, not on a child).
+        full_cover = path_from_static_url(cover_image_path)
         files_deleted = []
+        if full_cover and safe_remove_file(full_cover):
+            files_deleted.append("portada")
+        elif full_cover:
+            logger.error(
+                "Class %s deleted from DB but cover remained on disk: %s",
+                class_id, full_cover,
+            )
 
-        # Delete the cover image if it exists
-        if cover_image_path:
-            # Construir la ruta completa del archivo
-            # cover_image_path comes as "/static/uploads/classes/filename.jpg"
-            full_path = os.path.join("src", cover_image_path.lstrip("/"))
-
-            if os.path.exists(full_path):
-                try:
-                    os.remove(full_path)
-                    files_deleted.append("portada")
-                except Exception:
-                    pass
+        logger.info(
+            "Class %s deleted (files_removed=%d)", class_id, len(files_deleted)
+        )
 
         return {
             "message": "Clase eliminada exitosamente",
@@ -639,6 +655,10 @@ def delete_class_service(class_id: int, user_role: str):
 
     except Exception as e:
         db.rollback()
+        logger.critical(
+            "Unhandled exception in delete_class_service(class_id=%s): %s",
+            class_id, e,
+        )
         return {"error": f"Error al eliminar la clase: {str(e)}"}, 500
     finally:
         db.close()
@@ -1109,12 +1129,13 @@ def create_class_content_service(data: dict, image_file=None):
         image_url = None
         if image_file and image_file.filename:
             filename = secure_filename(image_file.filename)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
             filename = f"{timestamp}_{filename}"
 
             upload_folder = os.path.join("src", "static", "uploads", "class_content")
             os.makedirs(upload_folder, exist_ok=True)
 
+            filename = make_unique_filename(upload_folder, filename)
             filepath = os.path.join(upload_folder, filename)
             image_file.save(filepath)
             image_url = f"/static/uploads/class_content/{filename}"
@@ -1155,12 +1176,13 @@ def update_class_content_service(content_id: int, data: dict, image_file=None):
         # Actualizar imagen si se proporciona
         if image_file and image_file.filename:
             filename = secure_filename(image_file.filename)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
             filename = f"{timestamp}_{filename}"
 
             upload_folder = os.path.join("src", "static", "uploads", "class_content")
             os.makedirs(upload_folder, exist_ok=True)
 
+            filename = make_unique_filename(upload_folder, filename)
             filepath = os.path.join(upload_folder, filename)
             image_file.save(filepath)
             content.content_image = f"/static/uploads/class_content/{filename}"
@@ -1362,12 +1384,13 @@ def submit_assignment_service(data: dict, student_id: int, file=None):
         file_url = None
         if file and file.filename:
             filename = secure_filename(file.filename)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
             filename = f"{timestamp}_{filename}"
 
             upload_folder = os.path.join("src", "static", "uploads", "assignments")
             os.makedirs(upload_folder, exist_ok=True)
 
+            filename = make_unique_filename(upload_folder, filename)
             filepath = os.path.join(upload_folder, filename)
             file.save(filepath)
             file_url = f"/static/uploads/assignments/{filename}"
