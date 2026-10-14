@@ -342,6 +342,14 @@ hr.clases_br {
 .exam {
   width: 100%;
   height: 200px;
+  /* Fallback spacing in case the parent loses its flex layout (e.g.
+     when an inline `display: block` override lands on the period
+     container): keep a consistent gap between class cards. */
+  margin-bottom: 0.4rem;
+}
+
+.exam:last-child {
+  margin-bottom: 0;
 }
 
 .exam_content {

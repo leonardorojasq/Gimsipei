@@ -32,10 +32,15 @@ document.addEventListener("DOMContentLoaded", function () {
       periodButtons.forEach((btn) => btn.classList.remove("active"));
       this.classList.add("active");
 
-      // Show corresponding period container
+      // Show corresponding period container.
+      // Use display: '' (empty) so the CSS class `flex flex-column` on the
+      // container stays in effect — that way the `gap-2` utility (gap:
+      // 0.5rem between children) keeps the class cards spaced. Setting
+      // `display: block` inline would have broken the flex layout and
+      // collapsed the cards together.
       periodContainers.forEach((container) => {
         if (container.getAttribute("data-period") === period) {
-          container.style.display = "block";
+          container.style.display = "";
         } else {
           container.style.display = "none";
         }
