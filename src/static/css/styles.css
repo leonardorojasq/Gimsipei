@@ -57,3 +57,34 @@ select{
     justify-content: center;
     align-items: center;
 }
+
+/* Flash messages: pin to the top of the viewport so they stay visible above
+   the navbar (which uses z-index 999999). The .alert inside .flash-messages
+   is the same Bootstrap alert used everywhere, so the rule only applies to
+   flash messages and does not affect alerts nested inside cards. */
+.flash-messages {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000001;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.flash-messages .alert {
+    pointer-events: auto;
+    width: auto;
+    max-width: 90%;
+    margin: 0;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 0.85rem 3rem 0.85rem 1.25rem;
+}
+
+.flash-messages .alert .btn-close {
+    padding: 1rem 1.1rem;
+}
