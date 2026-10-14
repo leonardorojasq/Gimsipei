@@ -13,10 +13,19 @@ class ApiResponse(Generic[T]):
         message: str = "Operación exitosa",
         status_code: int = 200,
     ) -> tuple:
+        # Accept both Pydantic models (call .dict()) and plain dicts/lists
+        # (use as-is). Without this guard, endpoints that pass a dict would
+        # crash with AttributeError.
+        if data is None:
+            serialized = None
+        elif isinstance(data, BaseModel):
+            serialized = data.dict()
+        else:
+            serialized = data
         response = {
             "success": True,
             "message": message,
-            "data": data.dict() if data else None,
+            "data": serialized,
         }
         return jsonify(response), status_code
 
