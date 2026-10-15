@@ -12,6 +12,7 @@ from flask import (
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from pydantic import ValidationError
 
+from src.classes.service import get_all_courses_with_subjects
 from src.database.database import SessionLocal
 from src.models.class_model import ClassModel
 from src.models.user import User, UserRole
@@ -21,7 +22,6 @@ from src.utils.decorator_role_required import role_required
 from .service import (
     create_resource_service,
     delete_resource_service,
-    get_all_resources_organized_by_subject_service,
     get_resource_file_path_service,
     get_resource_service,
     get_resources_by_class_service,
@@ -32,7 +32,8 @@ from .service import (
 
 
 def resources_view_controller(_: Request):
-    """Vista principal de recursos para profesores"""
+    """Vista principal de recursos para profesores.
+    """
     try:
         current_user_id = get_jwt_identity()
         db = SessionLocal()
@@ -42,14 +43,12 @@ def resources_view_controller(_: Request):
             flash("Usuario no encontrado", "danger")
             return redirect(url_for("users.dashboard"))
 
-        # Obtener recursos organizados por materia
-        resources_data, status_code = get_all_resources_organized_by_subject_service()
+        courses, status_code = get_all_courses_with_subjects()
 
         if status_code != 200:
-            flash("Error al cargar los recursos", "danger")
-            return redirect(url_for("users.dashboard"))
+            flash("Error al cargar los cursos", "danger")
+            courses = []
 
-        # Convert the User object to a dictionary with role as string
         user_dict = {
             "id": user.id,
             "username": user.username,
@@ -60,9 +59,9 @@ def resources_view_controller(_: Request):
         }
 
         return render_template(
-            "teacher/resources_view.html",
+            "teacher/teacher_classes.html",
+            courses=courses,
             user=user_dict,
-            subjects=resources_data.get("subjects", []),
             accion_logout=True,
         )
     except Exception:

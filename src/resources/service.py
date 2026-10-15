@@ -13,7 +13,11 @@ from src.models.resource import Resource, ResourceType
 from src.models.subject import Subject
 from src.models.user import User
 from src.utils.app_logger import logger
-from src.utils.file_utils import make_unique_filename, path_from_static_url, safe_remove_file
+from src.utils.file_utils import (
+    make_unique_filename,
+    path_from_static_url,
+    safe_remove_file,
+)
 
 
 def get_resources_by_student_service(student_id: int) -> tuple[dict | None, int]:
@@ -174,62 +178,6 @@ def get_resources_by_class_service(class_id: int) -> tuple[list[dict], int]:
             )
 
         return resources_list, 200
-    finally:
-        db.close()
-
-
-def get_all_resources_organized_by_subject_service() -> tuple[dict, int]:
-    """Obtener todos los recursos del sistema organizados por materia.
-
-    Mismo comportamiento que la sección de clases para el rol docente:
-    cualquier docente ve todos los recursos de todas las materias. No se
-    filtra por creador (`Resource.created_by`) ni por asignación a
-    `CourseSubject`. El gate de acceso por rol se aplica en el router.
-    """
-    db = SessionLocal()
-    try:
-        rows = (
-            db.query(Resource, ClassModel, Subject)
-            .join(ClassModel, Resource.class_id == ClassModel.id)
-            .join(Subject, ClassModel.subject_id == Subject.id)
-            .order_by(Subject.name, Resource.period, Resource.class_id)
-            .all()
-        )
-
-        subjects_map: dict[int, dict] = {}
-        for resource, class_obj, subject in rows:
-            entry = subjects_map.get(subject.id)
-            if entry is None:
-                entry = {
-                    "subject": subject,
-                    "course_id": class_obj.course_id,
-                    "periods": {1: [], 2: [], 3: [], 4: []},
-                }
-                subjects_map[subject.id] = entry
-            entry["periods"][resource.period].append(
-                {
-                    "id": resource.id,
-                    "title": resource.title,
-                    "cover_image": resource.cover_image,
-                    "period": resource.period,
-                    "class_number": class_obj.class_number,
-                    "file_url": resource.file_url,
-                    "resource_type": resource.resource_type.value,
-                }
-            )
-
-        subjects_data = [
-            {
-                "subject_id": data["subject"].id,
-                "subject_name": data["subject"].name,
-                "course_id": data["course_id"],
-                "periods": data["periods"],
-                "total_resources": sum(len(p) for p in data["periods"].values()),
-            }
-            for data in subjects_map.values()
-        ]
-
-        return {"subjects": subjects_data}, 200
     finally:
         db.close()
 

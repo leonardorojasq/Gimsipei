@@ -70,7 +70,7 @@
                                         </a>
                                     </div>
                                     <div class="subject-action-cell">
-                                        <a href="{{ url_for('resources.resources_view') }}?course_id={{ course.id }}&subject_id={{ subject.id }}"
+                                        <a href="{{ url_for('resources.resources_view_subject', course_id=course.id, subject_id=subject.id) }}"
                                             class="add-link-btn" title="Ir a recursos">
                                             Ir
                                         </a>
