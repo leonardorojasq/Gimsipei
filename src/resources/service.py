@@ -178,131 +178,56 @@ def get_resources_by_class_service(class_id: int) -> tuple[list[dict], int]:
         db.close()
 
 
-def get_resources_by_teacher_service(teacher_id: int) -> tuple[dict | None, int]:
-    """Obtener todos los recursos organizados por materia para un profesor.
+def get_all_resources_organized_by_subject_service() -> tuple[dict, int]:
+    """Obtener todos los recursos del sistema organizados por materia.
 
-    Muestra los recursos de las materias que el profesor enseña
-    (CourseSubject.teacher_id == teacher_id) Y, además, los recursos que
-    el propio profesor creó aunque la materia no esté asignada a él vía
-    CourseSubject. Esto evita que un recurso quede invisible para su autor
-    cuando aún no se le ha asignado la materia en CourseSubject.
+    Mismo comportamiento que la sección de clases para el rol docente:
+    cualquier docente ve todos los recursos de todas las materias. No se
+    filtra por creador (`Resource.created_by`) ni por asignación a
+    `CourseSubject`. El gate de acceso por rol se aplica en el router.
     """
     db = SessionLocal()
     try:
-        # Materias que enseña el profesor (vía CourseSubject)
-        taught_course_subjects = (
-            db.query(CourseSubject, Subject)
-            .join(Subject, CourseSubject.subject_id == Subject.id)
-            .filter(CourseSubject.teacher_id == teacher_id)
-            .distinct(Subject.id)
+        rows = (
+            db.query(Resource, ClassModel, Subject)
+            .join(ClassModel, Resource.class_id == ClassModel.id)
+            .join(Subject, ClassModel.subject_id == Subject.id)
+            .order_by(Subject.name, Resource.period, Resource.class_id)
             .all()
         )
 
-        # Materias en las que el profesor tiene recursos creados (incluso
-        # si no está asignado a ellas vía CourseSubject)
-        created_subjects = (
-            db.query(Subject)
-            .join(ClassModel, ClassModel.subject_id == Subject.id)
-            .join(Resource, Resource.class_id == ClassModel.id)
-            .filter(Resource.created_by == teacher_id)
-            .distinct()
-            .all()
-        )
-
-        # Combinar las dos fuentes en un dict {subject_id: Subject}
-        subjects_by_id: dict = {}
-        for _, subject in taught_course_subjects:
-            subjects_by_id[subject.id] = subject
-        for subject in created_subjects:
-            subjects_by_id.setdefault(subject.id, subject)
-
-        if not subjects_by_id:
-            return {"subjects": []}, 200
-
-        # Set de subject_ids donde el profesor SÍ está asignado vía CourseSubject
-        taught_subject_ids = {s.id for _, s in taught_course_subjects}
-
-        subjects_data = []
-        for subject in subjects_by_id.values():
-            if subject.id in taught_subject_ids:
-                # El profesor enseña esta materia: mostrar las clases de las
-                # course_subject que le corresponden.
-                classes = (
-                    db.query(ClassModel)
-                    .join(
-                        CourseSubject,
-                        (CourseSubject.subject_id == ClassModel.subject_id)
-                        & (CourseSubject.course_id == ClassModel.course_id),
-                    )
-                    .filter(
-                        ClassModel.subject_id == subject.id,
-                        CourseSubject.teacher_id == teacher_id,
-                    )
-                    .all()
-                )
-            else:
-                # El profesor NO enseña esta materia pero creó recursos en
-                # alguna de sus clases. Mostrar las clases donde tiene
-                # recursos propios.
-                classes = (
-                    db.query(ClassModel)
-                    .join(Resource, Resource.class_id == ClassModel.id)
-                    .filter(
-                        ClassModel.subject_id == subject.id,
-                        Resource.created_by == teacher_id,
-                    )
-                    .distinct()
-                    .all()
-                )
-
-            # Obtener los recursos visibles para este profesor en estas clases:
-            # todas las clases que el profesor enseña + las clases donde él
-            # creó recursos.
-            class_ids = [c.id for c in classes]
-            resources = (
-                db.query(Resource)
-                .filter(
-                    Resource.class_id.in_(class_ids),
-                    # Mostrar todos los recursos de las clases que enseña,
-                    # o solo los propios en las que no enseña.
-                    (Resource.created_by == teacher_id)
-                    | (subject.id in taught_subject_ids),
-                )
-                .order_by(Resource.period, Resource.class_id)
-                .all()
-            )
-
-            # Agrupar recursos por período
-            periods_data = {1: [], 2: [], 3: [], 4: []}
-            for resource in resources:
-                class_info = next(
-                    (c for c in classes if c.id == resource.class_id), None
-                )
-                periods_data[resource.period].append(
-                    {
-                        "id": resource.id,
-                        "title": resource.title,
-                        "cover_image": resource.cover_image,
-                        "period": resource.period,
-                        "class_number": class_info.class_number if class_info else None,
-                        "file_url": resource.file_url,
-                        "resource_type": resource.resource_type.value,
-                    }
-                )
-
-            # course_id: tomar el primero disponible (de las clases que enseña
-            # o, si no, de la primera clase donde creó recursos)
-            course_id = classes[0].course_id if classes else None
-
-            subjects_data.append(
+        subjects_map: dict[int, dict] = {}
+        for resource, class_obj, subject in rows:
+            entry = subjects_map.get(subject.id)
+            if entry is None:
+                entry = {
+                    "subject": subject,
+                    "course_id": class_obj.course_id,
+                    "periods": {1: [], 2: [], 3: [], 4: []},
+                }
+                subjects_map[subject.id] = entry
+            entry["periods"][resource.period].append(
                 {
-                    "subject_id": subject.id,
-                    "subject_name": subject.name,
-                    "course_id": course_id,
-                    "periods": periods_data,
-                    "total_resources": len(resources),
+                    "id": resource.id,
+                    "title": resource.title,
+                    "cover_image": resource.cover_image,
+                    "period": resource.period,
+                    "class_number": class_obj.class_number,
+                    "file_url": resource.file_url,
+                    "resource_type": resource.resource_type.value,
                 }
             )
+
+        subjects_data = [
+            {
+                "subject_id": data["subject"].id,
+                "subject_name": data["subject"].name,
+                "course_id": data["course_id"],
+                "periods": data["periods"],
+                "total_resources": sum(len(p) for p in data["periods"].values()),
+            }
+            for data in subjects_map.values()
+        ]
 
         return {"subjects": subjects_data}, 200
     finally:

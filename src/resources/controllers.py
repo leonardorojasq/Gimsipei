@@ -21,12 +21,12 @@ from src.utils.decorator_role_required import role_required
 from .service import (
     create_resource_service,
     delete_resource_service,
+    get_all_resources_organized_by_subject_service,
     get_resource_file_path_service,
     get_resource_service,
     get_resources_by_class_service,
     get_resources_by_student_service,
     get_resources_by_student_subject_service,
-    get_resources_by_teacher_service,
     update_resource_service,
 )
 
@@ -43,7 +43,7 @@ def resources_view_controller(_: Request):
             return redirect(url_for("users.dashboard"))
 
         # Obtener recursos organizados por materia
-        resources_data, status_code = get_resources_by_teacher_service(current_user_id)
+        resources_data, status_code = get_all_resources_organized_by_subject_service()
 
         if status_code != 200:
             flash("Error al cargar los recursos", "danger")
